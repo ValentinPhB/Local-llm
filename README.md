@@ -5,7 +5,7 @@ l'architecture et la sécurité d'une plateforme LLM sur macOS Apple Silicon.
 
 ## Objectif
 
-Construire et analyser une architecture locale composée d'Ollama, d'Open WebUI
+Construire et analyser une architecture locale composée d'Ollama, de Chatbox
 et, plus tard, de bases documentaires RAG soumises à des contrôles d'accès.
 
 ## Principes de sécurité
@@ -18,5 +18,5 @@ et, plus tard, de bases documentaires RAG soumises à des contrôles d'accès.
 
 ## État du laboratoire
 
-Initialisation du dépôt et des garde-fous Git en cours. Aucun service, modèle,
-conteneur ou port réseau n'est actuellement configuré.
+Ollama et le modèle local `qwen3:4b` sont disponibles. Chatbox est installé,
+mais n'est pas encore configuré pour se connecter à l'API locale.

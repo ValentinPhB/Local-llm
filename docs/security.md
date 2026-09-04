@@ -6,7 +6,9 @@ techniques la démontrent.
 
 ## Réseau
 
-- Ollama et Open WebUI sont accessibles depuis le Mac via `127.0.0.1` seulement.
+- Ollama est accessible depuis le Mac via `127.0.0.1` seulement.
+- Chatbox est un client natif ; sa seule cible de modèle configurée doit être `http://127.0.0.1:11434`.
+- Aucun fournisseur cloud, recherche web, import documentaire, agent ou MCP n'est activé dans Chatbox durant cette phase.
 - Aucun port n'est publié sur le LAN ou Internet sans décision explicite et documentée.
 - L'API Ollama ne doit pas être exposée directement à des utilisateurs non authentifiés.
 - Les fonctions cloud et la recherche web d'Ollama sont désactivées pendant la phase locale du laboratoire.
