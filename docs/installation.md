@@ -22,8 +22,8 @@ Pour chaque étape, documenter :
 | Ollama | Installé, serveur local démarré (version 0.33.3) |
 | Modèle LLM | `qwen3:4b` téléchargé localement (2,5 GB selon Ollama) |
 | Docker / Docker Desktop | Disponible, aucun conteneur du laboratoire lancé |
-| Chatbox | Installé, configuration Ollama à réaliser |
-| Ports réseau du laboratoire | Ollama : `127.0.0.1:11434` uniquement |
+| Interface locale minimale | Créée et testée ; démarrage manuel nécessaire |
+| Ports réseau du laboratoire | Ollama : `127.0.0.1:11434` ; interface : `127.0.0.1:3210` |
 
 ## Entrées d'installation
 
@@ -48,12 +48,11 @@ Pour chaque étape, documenter :
 
   Résultat observé : version `0.33.3` ; API opérationnelle ; écoute limitée à `127.0.0.1:11434`.
 
-### Chatbox Community Edition — 2026-09-04
+### Interface locale minimale — 2026-09-04
 
-- **Rôle :** client local natif de conversation. Il remplacera l'interface web conteneurisée initialement envisagée.
-- **Choix de sécurité :** cette option évite d'ajouter une interface web conteneurisée avec ses dépendances. Cela ne rend pas le client automatiquement sûr : aucune fonction cloud, recherche web, import documentaire, agent ou MCP ne sera configurée.
-- **Installation :** application `Chatbox.app` version `1.22.3` installée dans `/Applications` depuis le DMG Apple Silicon référencé par la release officielle.
-- **Intégrité :** SHA-256 du DMG : `2dbee431934730a7d089e32a7b8f4fbfc52b3b3bc19bdcb8ccfbebdc1732060f`.
-- **Signature :** `codesign` a validé l'application ; Gatekeeper l'a acceptée comme `Notarized Developer ID`, signée par `benn huang (YJ5GSB3AMW)`.
-- **Réseau prévu :** uniquement `http://127.0.0.1:11434` vers Ollama. Aucun compte ni clé API ne sera utilisé.
-- **État :** l'application n'a pas encore été lancée ni configurée.
+- **Rôle :** page de conversation servie par `ui/server.py`, sans dépendance tierce ni conteneur.
+- **Démarrage :** `python3 ui/server.py`, puis ouvrir `http://127.0.0.1:3210`.
+- **Réseau :** le serveur est lié à `127.0.0.1:3210` et transmet uniquement à `http://127.0.0.1:11434/api/chat`.
+- **Réduction de surface :** pas de compte, clé API, import de document, conversation persistante, agent, outil ou MCP.
+- **Protection des traces :** le serveur demande `think: false` à Ollama et retire tout contenu précédant `</think>` lorsqu'un modèle renvoie malgré tout une trace balisée.
+- **Vérification :** `/healthz` retourne le modèle fixé `qwen3:4b` ; une entrée JSON invalide renvoie `400` ; le test `Réponds exactement : LOCAL-OK` a renvoyé seulement `LOCAL-OK`.

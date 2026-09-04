@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LLM Security Lab</title>
+    <style>
+      body { background: #10151d; color: #edf2f7; font: 16px system-ui, sans-serif; margin: 0; }
+      main { margin: 3rem auto; max-width: 760px; padding: 0 1.25rem; }
+      h1 { margin-bottom: .25rem; } p { color: #b8c4d3; }
+      #reply { background: #19212c; border-radius: .5rem; min-height: 5rem; padding: 1rem; white-space: pre-wrap; }
+      form { display: grid; gap: .75rem; margin-top: 1rem; }
+      textarea { background: #19212c; border: 1px solid #526174; border-radius: .5rem; color: inherit; font: inherit; min-height: 7rem; padding: .75rem; resize: vertical; }
+      button { background: #4f8cff; border: 0; border-radius: .5rem; color: white; font: inherit; padding: .7rem 1rem; width: fit-content; }
+      button:disabled { opacity: .6; } .note { font-size: .9rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>LLM Security Lab</h1>
+      <p>Modèle local : <code>qwen3:4b</code> via Ollama sur cette machine.</p>
+      <div id="reply" aria-live="polite">Prêt.</div>
+      <form id="chat">
+        <label for="message">Message</label>
+        <textarea id="message" maxlength="8000" required></textarea>
+        <button id="send" type="submit">Envoyer</button>
+      </form>
+      <p class="note">Cette interface n'enregistre pas les échanges et n'offre ni outil, ni MCP, ni import de document.</p>
+    </main>
+    <script>
+      const form = document.querySelector('#chat');
+      const message = document.querySelector('#message');
+      const reply = document.querySelector('#reply');
+      const send = document.querySelector('#send');
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        send.disabled = true;
+        reply.textContent = 'Réponse locale en cours…';
+        try {
+          const result = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: message.value}),
+          });
+          const body = await result.json();
+          reply.textContent = body.content || body.error || 'Réponse vide.';
+        } catch {
+          reply.textContent = 'Impossible de joindre l’interface locale.';
+        } finally {
+          send.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

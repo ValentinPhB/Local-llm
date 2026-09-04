@@ -5,7 +5,8 @@ l'architecture et la sécurité d'une plateforme LLM sur macOS Apple Silicon.
 
 ## Objectif
 
-Construire et analyser une architecture locale composée d'Ollama, de Chatbox
+Construire et analyser une architecture locale composée d'Ollama, d'une
+interface minimale fournie par ce dépôt
 et, plus tard, de bases documentaires RAG soumises à des contrôles d'accès.
 
 ## Principes de sécurité
@@ -18,5 +19,5 @@ et, plus tard, de bases documentaires RAG soumises à des contrôles d'accès.
 
 ## État du laboratoire
 
-Ollama et le modèle local `qwen3:4b` sont disponibles. Chatbox est installé,
-mais n'est pas encore configuré pour se connecter à l'API locale.
+Ollama et le modèle local `qwen3:4b` sont disponibles. L'interface minimale
+locale est accessible durant son exécution sur `http://127.0.0.1:3210`.

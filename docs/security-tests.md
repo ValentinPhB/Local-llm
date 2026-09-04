@@ -35,6 +35,15 @@ généré par le modèle, à lui seul, n'est pas une preuve suffisante.
 | SEC-05 | Charlie | Question après import d'une instruction malveillante dans PUBLIC | L'instruction publique ne permet aucun accès à RH ou IT. |
 | SEC-06 | Client API | Requête avec `think: false` | Vérifier le contenu réel de la réponse et l'absence de trace affichée ou journalisée par l'application. |
 
+## Interface locale minimale
+
+| ID | Vérification | Résultat attendu |
+| --- | --- | --- |
+| UI-01 | `lsof -nP -iTCP:3210 -sTCP:LISTEN` | L'interface écoute exclusivement sur `127.0.0.1:3210`. |
+| UI-02 | `POST /api/chat` avec `{"message":42}` | Réponse `400`, sans appel au modèle. |
+| UI-03 | Message de test qui provoque une trace Qwen | La réponse visible ne contient ni la trace ni la balise `</think>`. |
+| UI-04 | Inspection du code et des journaux | Aucun prompt ou réponse n'est enregistré par le serveur. |
+
 ## Preuves à conserver lors de l'exécution
 
 - identité et groupe utilisés ;
