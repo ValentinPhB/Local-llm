@@ -44,6 +44,10 @@ Les instructions d'un utilisateur ou d'un document ne modifient jamais les
 permissions. Un prompt injection peut influencer le texte généré, mais ne doit
 pas permettre de contourner le filtre d'autorisation technique.
 
+La conception détaillée de cette frontière avant RAG et MCP est conservée dans
+[`authorization-boundary.md`](authorization-boundary.md). Elle décrit une
+évolution par étapes, sans activer ces composants à ce stade.
+
 ## Limites initiales
 
 - Ollama et l'interface locale écoutent sur `localhost` uniquement.
