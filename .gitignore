@@ -1,0 +1,15 @@
+# Real environment files may contain credentials. Keep only the safe template.
+.env
+.env.*
+!.env.example
+
+# Local credentials and private keys must never enter version control.
+credentials/
+secrets/
+*.pem
+*.key
+
+# Local runtime artifacts and editor/OS metadata.
+*.log
+tmp/
+.DS_Store
