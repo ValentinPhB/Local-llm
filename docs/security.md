@@ -9,6 +9,7 @@ techniques la démontrent.
 - Ollama et Open WebUI sont accessibles depuis le Mac via `127.0.0.1` seulement.
 - Aucun port n'est publié sur le LAN ou Internet sans décision explicite et documentée.
 - L'API Ollama ne doit pas être exposée directement à des utilisateurs non authentifiés.
+- Les fonctions cloud et la recherche web d'Ollama sont désactivées pendant la phase locale du laboratoire.
 
 ## Données et secrets
 
@@ -24,6 +25,8 @@ techniques la démontrent.
 - Le modèle ne décide jamais si un document est accessible.
 - Une instruction contenue dans un prompt ou un document ne change jamais les permissions.
 - Les tests démontrent qu'une source non autorisée n'est pas récupérée dans le contexte du modèle.
+- Les traces de raisonnement éventuelles sont traitées comme des données potentiellement sensibles : elles ne doivent pas être affichées ou journalisées par défaut.
+- Une option client telle que `think: false` n'est pas considérée comme une garantie de suppression de ces traces sans test du contenu réellement reçu.
 
 ## Conteneurs et outils futurs
 
