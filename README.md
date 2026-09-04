@@ -21,3 +21,6 @@ et, plus tard, de bases documentaires RAG soumises à des contrôles d'accès.
 
 Ollama et le modèle local `qwen3:4b` sont disponibles. L'interface minimale
 locale est accessible durant son exécution sur `http://127.0.0.1:3210`.
+
+Pour reprendre le projet après une interruption, consulter d'abord
+[`STATUS.md`](STATUS.md).

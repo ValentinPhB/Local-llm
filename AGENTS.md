@@ -16,6 +16,7 @@ progressive, expliquée et vérifiable.
 
 ## Méthode de travail
 
+- Au début d'une reprise, lire `STATUS.md`, puis `AGENTS.md`, vérifier l'état Git et les services locaux avant toute modification.
 - Expliquer l'objectif, l'impact, les risques et la vérification avant chaque changement significatif.
 - Limiter chaque étape à un changement cohérent et vérifier son résultat.
 - Préserver les changements existants de l'utilisateur et ne pas effectuer d'action destructive sans autorisation explicite.
