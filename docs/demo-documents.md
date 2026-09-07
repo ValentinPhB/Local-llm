@@ -8,10 +8,10 @@ nom réel, secret, identifiant ou information personnelle. Ils servent à
 apprendre le lien entre une ressource physique, ses métadonnées et sa règle
 d'accès.
 
-Ils ne sont pas encore indexés, recherchés ni envoyés à Ollama. À ce stade,
-l'API ne retourne que la décision `autorisé` ou `refusé` associée à leur
-identifiant : elle ne lit pas le fichier, y compris lorsque l'accès est
-autorisé.
+Ils ne sont pas encore indexés, recherchés ni envoyés à Ollama. L'API peut
+retourner un fichier après autorisation ACL, mais elle ne réalise aucune
+recherche et ne l'ajoute jamais au prompt. Le contrat du lecteur est décrit dans
+[`controlled-document-reader.md`](controlled-document-reader.md).
 
 ## Répartition imposée
 

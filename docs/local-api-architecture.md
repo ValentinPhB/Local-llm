@@ -39,6 +39,7 @@ Elle n'est pas encore installée comme service permanent.
 | `POST /api/demo-session` | Émet une session fictive signée après choix explicite d'Alice, Bob, Charlie ou Oscar. | Cookie `HttpOnly` et identité affichable. |
 | `GET /api/session` | Vérifie et retourne l'identité fictive de la session. | `{"authenticated":true,"identity":{…}}` |
 | `GET /api/access-check?resource_id=…` | Évalue l'ACL d'un document fictif avec les groupes du jeton, sans lire le fichier. | `{"resource_id":"rh-onboarding","allowed":true}` |
+| `GET /api/documents/<resource_id>` | Vérifie l'ACL puis lit le seul fichier déclaré par la politique. | `{"resource_id":"public-welcome","classification":"PUBLIC","content":"…"}` |
 | `POST /api/logout` | Invalide le cookie côté navigateur. | `{"authenticated":false}` |
 | `POST /api/chat` | Vérifie d'abord la session, puis envoie le message à Ollama. | `{"content":"…"}` |
 
@@ -90,15 +91,15 @@ fichiers de configuration.
 ## Ce que Python ne fait pas encore
 
 - pas d'authentification réelle ni de connexion à un annuaire d'entreprise ;
-- pas de lecture, d'import ou d'indexation des quinze documents fictifs ;
+- pas d'import, d'indexation, de recherche ou de RAG sur les quinze documents
+  fictifs ;
 - pas de base documentaire, import de fichier ou RAG ;
 - pas de MCP, d'outil ou de credential ;
 - pas de persistance des conversations.
 
-La prochaine évolution ajoutera un lecteur contrôlé des documents fictifs : le
-serveur filtrera les ressources avant toute lecture, recherche et tout envoi de
-passage à Ollama. Une décision de refus empêchera donc l'envoi du contexte au
-modèle.
+Le lecteur contrôlé existe : il filtre avant toute lecture et ne transmet jamais
+son résultat au modèle. La prochaine évolution, à concevoir, sera la recherche
+filtrée avant tout envoi de passage à Ollama.
 
 ## Démarrage et vérification
 

@@ -36,6 +36,9 @@ La simulation locale d'un annuaire et d'un SSO est expliquée dans
 Les quinze documents fictifs, leurs classifications et leurs limites actuelles
 sont décrits dans [`docs/demo-documents.md`](docs/demo-documents.md).
 
+Leur lecture locale autorisée, sans RAG ni envoi au modèle, est décrite dans
+[`docs/controlled-document-reader.md`](docs/controlled-document-reader.md).
+
 Le contrat de lecture seule prévu pour les futurs MCP est dans
 [`docs/mcp-authorization.md`](docs/mcp-authorization.md) ; aucun MCP n'est
 encore connecté.

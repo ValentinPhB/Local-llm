@@ -24,7 +24,7 @@ reproductible. Il n'autorise aucun déploiement réseau ou cloud.
 | Interface/API locale | `ui/server.py`, `ui/index.html` | Validation de message, filtre `</think>`, erreurs HTTP | Serveur démarré, session refusée/acceptée, `/api/chat` avec Ollama simulé | écoute loopback, pas de logs de prompts, analyse Python |
 | Simulation SSO | `identity/demo_sso.py`, `directory.json` | signature, expiration, issuer, audience et groupes | cookie falsifié refusé par l'API | aucune clé persistante, cookie HttpOnly, identité libre interdite sur chat |
 | Politique d'accès | `demo-policy.json` | groupes -> rôles et décision RBAC/ACL | API + moteur de politique, avant tout contexte LLM | refus par défaut, absence de contournement par prompt |
-| Documents fictifs | `demo-documents/` et chemins de politique | présence, nombre, classification et métadonnées | lecteur contrôlé futur, avant RAG | aucun document réel, chemin déclaré obligatoire, refus avant lecture |
+| Documents fictifs | `demo-documents/` et chemins de politique | présence, nombre, classification et métadonnées | lecteur contrôlé après ACL, avant RAG | aucun document réel, chemin déclaré obligatoire, refus avant lecture |
 | Ollama | application macOS | hors CI : logiciel tiers | API locale, version, écoute `127.0.0.1` | signature/notarisation, veille CVE avant mise à jour |
 | Modèle | manifeste et blobs Ollama | hors CI : artefact tiers | requête non sensible, mémoire et temps de réponse | licence, origine, identifiant de contenu, comportement `think` |
 | RAG futur | index, métadonnées et récupérateur | filtre ACL, extraction et chunking | aucun passage interdit envoyé au LLM | tests d'isolation utilisateur et injection documentaire |

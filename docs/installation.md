@@ -24,7 +24,7 @@ Pour chaque étape, documenter :
 | Docker / Docker Desktop | Disponible, aucun conteneur du laboratoire lancé |
 | Interface locale minimale | Créée et testée ; démarrage manuel nécessaire |
 | Annuaire / SSO de démonstration | Fictif, local, jetons signés éphémères ; aucun annuaire d'entreprise |
-| Documents de démonstration | 15 fichiers Markdown fictifs, versionnés et classifiés ; aucune lecture API/RAG |
+| Documents de démonstration | 15 fichiers Markdown fictifs, versionnés, classifiés et lisibles après ACL ; aucun RAG |
 | Ports réseau du laboratoire | Ollama : `127.0.0.1:11434` ; interface : `127.0.0.1:3210` |
 
 ## Entrées d'installation
@@ -89,6 +89,7 @@ Pour chaque étape, documenter :
   `owner`; `config/access-control/demo-policy.json` référence le même
   identifiant, la même classification et le chemin relatif exact.
 - **Données persistantes et réseau :** uniquement des fichiers Git ; aucun port
-  ajouté, index créé ou contenu envoyé à Ollama.
+  ajouté, index créé ou contenu envoyé à Ollama. Leur lecture est uniquement
+  possible après ACL et via un chemin déclaré dans la politique.
 - **Vérification :** `tests/test_demo_documents.py` contrôle la répartition
   9/3/3, l'existence de chaque chemin et la cohérence des métadonnées.

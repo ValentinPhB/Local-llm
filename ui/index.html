@@ -18,6 +18,7 @@
       .identities { display: flex; flex-wrap: wrap; gap: .5rem; } .secondary { background: #3a4657; }
       #access-list { display: grid; gap: .25rem; margin: .75rem 0 0; padding-left: 1.25rem; }
       .allowed { color: #79d9a2; } .denied { color: #ff9d9d; }
+      #document-content { max-height: 22rem; overflow: auto; white-space: pre-wrap; }
     </style>
   </head>
   <body>
@@ -39,13 +40,18 @@
         <p class="note">Simulation locale uniquement : choisir une identité ici ne prouve pas qui tu es. Le but est de tester le jeton signé, les groupes et les droits avant un futur SSO d’entreprise.</p>
       </section>
 
+      <section id="document-viewer" aria-labelledby="document-title" hidden>
+        <h2 id="document-title">Document autorisé</h2>
+        <pre id="document-content"></pre>
+      </section>
+
       <div id="reply" aria-live="polite">Choisis une identité de démonstration pour commencer.</div>
       <form id="chat">
         <label for="message">Message</label>
         <textarea id="message" maxlength="8000" required></textarea>
         <button id="send" type="submit">Envoyer</button>
       </form>
-      <p class="note">Cette interface n'enregistre pas les échanges et n'offre ni outil, ni MCP, ni import de document. Les droits affichés portent sur des ressources fictives ; aucun document n’est encore envoyé au modèle.</p>
+      <p class="note">Cette interface n'enregistre pas les échanges et n'offre ni outil, ni MCP, ni import de document. Les documents autorisés peuvent être lus dans cette page, mais ne sont jamais envoyés au modèle.</p>
     </main>
     <script>
       const form = document.querySelector('#chat');
@@ -55,6 +61,9 @@
       const sessionStatus = document.querySelector('#session-status');
       const accessList = document.querySelector('#access-list');
       const logout = document.querySelector('#logout');
+      const documentViewer = document.querySelector('#document-viewer');
+      const documentTitle = document.querySelector('#document-title');
+      const documentContent = document.querySelector('#document-content');
       const identityButtons = [...document.querySelectorAll('[data-identity]')];
       const resources = [
         'public-welcome', 'public-model-guidelines', 'public-incident-reporting',
@@ -72,6 +81,22 @@
         identityButtons.forEach((button) => { button.disabled = disabled; });
       }
 
+      async function viewDocument(resourceId) {
+        documentTitle.textContent = `Lecture de ${resourceId}…`;
+        documentContent.textContent = '';
+        documentViewer.hidden = false;
+        try {
+          const response = await fetch(`/api/documents/${encodeURIComponent(resourceId)}`);
+          const body = await readJson(response);
+          if (!response.ok) throw new Error(body.error || 'Accès au document refusé.');
+          documentTitle.textContent = `${body.resource_id} (${body.classification})`;
+          documentContent.textContent = body.content;
+        } catch (error) {
+          documentTitle.textContent = 'Lecture impossible';
+          documentContent.textContent = error.message || 'Erreur de lecture.';
+        }
+      }
+
       async function showAccess() {
         accessList.replaceChildren();
         const results = await Promise.all(resources.map(async (resourceId) => {
@@ -83,6 +108,13 @@
           const item = document.createElement('li');
           item.className = result.allowed ? 'allowed' : 'denied';
           item.textContent = `${result.resourceId} : ${result.allowed ? 'autorisé' : 'refusé'}`;
+          if (result.allowed) {
+            const readButton = document.createElement('button');
+            readButton.type = 'button';
+            readButton.textContent = 'Lire';
+            readButton.addEventListener('click', () => viewDocument(result.resourceId));
+            item.append(' ', readButton);
+          }
           accessList.append(item);
         }
         accessList.hidden = false;
@@ -94,6 +126,7 @@
         if (!response.ok || !body.authenticated) {
           sessionStatus.textContent = 'Aucune session de démonstration active.';
           accessList.hidden = true;
+          documentViewer.hidden = true;
           logout.hidden = true;
           return false;
         }
@@ -105,6 +138,8 @@
 
       identityButtons.forEach((button) => button.addEventListener('click', async () => {
         setIdentityButtons(true);
+        documentViewer.hidden = true;
+        documentContent.textContent = '';
         reply.textContent = 'Création de la session de démonstration…';
         try {
           const response = await fetch('/api/demo-session', {

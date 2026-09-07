@@ -2,7 +2,7 @@
 """Interface locale minimale, identité de démonstration et relais Ollama.
 
 Le faux SSO n'est utilisable que dans ce laboratoire : une personne peut y
-choisir librement Alice, Bob ou Charlie. Son objectif est d'exercer le flux
+choisir librement Alice, Bob, Charlie ou Oscar. Son objectif est d'exercer le flux
 technique « jeton signé -> groupes -> rôles -> ACL », pas de prouver l'identité
 d'une personne réelle.
 """
@@ -29,6 +29,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from access_control.engine import decide_access_for_roles, policy_is_valid, roles_from_groups
+from document_store.reader import DocumentError, read_policy_document
 from identity.demo_sso import (
     DemoDirectory,
     TokenError,
@@ -46,6 +47,7 @@ OLLAMA_CHAT_URL = "http://127.0.0.1:11434/api/chat"
 MODEL = "qwen3:4b"
 MAX_MESSAGE_CHARS = 8_000
 MAX_AUTH_BODY_BYTES = 256
+RESOURCE_ID = re.compile(r"[a-z0-9-]{1,80}")
 SESSION_COOKIE_NAME = "lab_demo_session"
 ROOT = PROJECT_ROOT
 INDEX = Path(__file__).with_name("index.html")
@@ -173,6 +175,35 @@ class LocalUIHandler(BaseHTTPRequestHandler):
             # motif détaillé transmis au navigateur.
             status = HTTPStatus.OK if decision.allowed else HTTPStatus.FORBIDDEN
             self.send_json(status, {"resource_id": resource_ids[0], "allowed": decision.allowed})
+            return
+        if request.path.startswith("/api/documents/"):
+            session = self._require_session()
+            if session is None:
+                return
+            resource_id = request.path.removeprefix("/api/documents/")
+            if not RESOURCE_ID.fullmatch(resource_id):
+                self.send_json(HTTPStatus.BAD_REQUEST, {"error": "Ressource de démonstration invalide."})
+                return
+            roles = roles_from_groups(self.state.policy, session.groups)
+            decision = decide_access_for_roles(self.state.policy, roles, resource_id)
+            if not decision.allowed:
+                # Ne pas lire le document, ni distinguer une ressource inconnue
+                # d'une ressource interdite.
+                self.send_json(HTTPStatus.FORBIDDEN, {"error": "Accès au document refusé."})
+                return
+            try:
+                document = read_policy_document(self.state.policy, resource_id, ROOT)
+            except DocumentError:
+                self.send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "Document indisponible."})
+                return
+            self.send_json(
+                HTTPStatus.OK,
+                {
+                    "resource_id": document.resource_id,
+                    "classification": document.classification,
+                    "content": document.content,
+                },
+            )
             return
         if request.path != "/":
             self.send_error(HTTPStatus.NOT_FOUND)

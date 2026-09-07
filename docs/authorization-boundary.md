@@ -9,8 +9,8 @@ fournit pas d'identité à la route de chat.
 
 Ce n'est pas une authentification réelle : le choix d'identité est libre et
 sert uniquement à simuler le contrat d'un SSO. Les documents fictifs existent
-dans le dépôt, mais aucun n'est encore lu par l'API ; il n'existe ni outil ni
-MCP.
+dans le dépôt et peuvent être lus par un lecteur contrôlé après ACL. Ils ne sont
+ni recherchés, ni indexés, ni transmis au LLM ; il n'existe ni outil ni MCP.
 
 ## Architecture à ajouter avant toute donnée réelle
 
@@ -51,8 +51,8 @@ Outil MCP demandé
 1. Définir des identités fictives, rôles et ressources de démonstration. **Fait.**
 2. Mettre en place une simulation de jeton signé et le moteur RBAC / ACL. **Fait ; pas une authentification réelle.**
 3. Ajouter des documents fictifs avec métadonnées et ACL obligatoires. **Fait :
-   15 fichiers versionnés, mais pas encore lus par l'API.**
-4. Construire le lecteur et la récupération filtrée, puis prouver les refus avec les scénarios
+   15 fichiers versionnés et lecteur contrôlé après ACL.**
+4. Construire la récupération filtrée, puis prouver les refus avec les scénarios
    `SEC-01` à `SEC-05`.
 5. Ajouter un seul MCP de démonstration, sans privilège système, puis prouver
    que les actions interdites sont refusées.

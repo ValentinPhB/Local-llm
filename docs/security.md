@@ -8,7 +8,9 @@ techniques la démontrent.
 
 - Ollama est accessible depuis le Mac via `127.0.0.1` seulement.
 - L'interface locale est liée à `127.0.0.1:3210` et sa seule cible est `http://127.0.0.1:11434`.
-- Aucun fournisseur cloud, recherche web, lecteur/import documentaire, agent ou MCP n'est implémenté durant cette phase. Les fichiers fictifs versionnés ne sont pas servis par l'API.
+- Aucun fournisseur cloud, recherche web, import documentaire, recherche/RAG,
+  agent ou MCP n'est implémenté durant cette phase. Le lecteur local retourne
+  seulement les fichiers fictifs déjà autorisés par l'ACL.
 - Aucun port n'est publié sur le LAN ou Internet sans décision explicite et documentée.
 - L'API Ollama ne doit pas être exposée directement à des utilisateurs non authentifiés.
 - Les fonctions cloud et la recherche web d'Ollama sont désactivées pendant la phase locale du laboratoire.
@@ -37,6 +39,8 @@ techniques la démontrent.
 - Une instruction contenue dans un prompt ou un document ne change jamais les permissions.
 - Avant d'ajouter le RAG, les tests devront démontrer qu'une source non
   autorisée n'est ni lue, ni récupérée, ni transmise dans le contexte du modèle.
+- Le lecteur documentaire n'accepte aucun chemin client : il résout uniquement
+  le chemin déclaré dans la politique, confiné à `demo-documents/`, après ACL.
 - Les traces de raisonnement éventuelles sont traitées comme des données potentiellement sensibles : elles ne doivent pas être affichées ou journalisées par défaut.
 - Une option client telle que `think: false` n'est pas considérée comme une garantie de suppression de ces traces sans test du contenu réellement reçu.
 - Les routes de chat ne doivent jamais accepter un identifiant, des groupes ou

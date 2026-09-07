@@ -2,6 +2,7 @@ import http.client
 import json
 import threading
 import unittest
+from unittest.mock import patch
 
 from ui.server import SESSION_COOKIE_NAME, create_server
 
@@ -84,6 +85,34 @@ class LocalAPITests(unittest.TestCase):
         )
         self.assertEqual(status, 403)
         self.assertFalse(payload["allowed"])
+
+    def test_authorized_document_is_returned_only_after_access_check(self):
+        headers = self.start_demo_session("oscar")
+        status, payload, _ = self.request(
+            "GET", "/api/documents/public-welcome", headers=headers
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["resource_id"], "public-welcome")
+        self.assertEqual(payload["classification"], "PUBLIC")
+        self.assertIn("Acme-Lab", payload["content"])
+
+    def test_denied_document_is_not_read(self):
+        headers = self.start_demo_session("oscar")
+        with patch("ui.server.read_policy_document") as reader:
+            status, payload, _ = self.request(
+                "GET", "/api/documents/public-glossary", headers=headers
+            )
+        self.assertEqual(status, 403)
+        self.assertIn("refusé", payload["error"])
+        reader.assert_not_called()
+
+    def test_document_path_like_identifier_is_rejected(self):
+        headers = self.start_demo_session("alice")
+        status, payload, _ = self.request(
+            "GET", "/api/documents/%2E%2E%2FAGENTS.md", headers=headers
+        )
+        self.assertEqual(status, 400)
+        self.assertIn("invalide", payload["error"])
 
 
 if __name__ == "__main__":

@@ -51,8 +51,8 @@ donne aucun droit documentaire. Son contrat pour les MCP futurs est décrit dans
 
 ## Limites actuelles
 
-- Les fichiers existent, mais l'API ne les lit, ne les retourne et ne les
-  transmet pas encore à Ollama.
+- L'API peut lire et retourner un fichier après autorisation, mais ne le
+  transmet jamais à Ollama. Elle ne réalise ni recherche ni RAG.
 - La session est une simulation libre locale, non une identité réelle.
 - La route de démonstration ne retourne aucune donnée de ressource : elle
   montre seulement autorisé ou refusé. Le filtrage de documents avant RAG reste
@@ -72,3 +72,6 @@ ou une ressource inconnue. Les tests standards Python sont dans
 `tests/test_access_control.py`. L'API utilise plutôt
 `roles_from_groups(...)`, puis `decide_access_for_roles(...)`, car elle reçoit
 des groupes après vérification du jeton.
+
+Le lecteur contrôlé qui appelle le moteur est détaillé dans
+[`controlled-document-reader.md`](controlled-document-reader.md).

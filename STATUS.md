@@ -35,13 +35,14 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
   : l'identité est volontairement choisie librement.
 - Jeu documentaire : quinze fichiers Markdown fictifs existent dans
   `demo-documents/` (9 PUBLIC, 3 RH, 3 IT). Leur chemin et leurs métadonnées
-  correspondent à la politique ACL ; l'API ne les lit ni ne les envoie encore
+  correspondent à la politique ACL. L'API les lit seulement après autorisation,
+  via le chemin déclaré et confiné à `demo-documents/`, et ne les envoie jamais
   à Ollama.
 - Oscar est autorisé seulement sur `public-welcome`. Son rôle `mcp_read_only`
   est un contrat pour les futurs MCP approuvés : actions `read` explicitement
   enregistrées seulement ; toute autre action est refusée. Aucun MCP n'est
   installé à ce stade.
-- Tests validés : `python3 -m unittest discover -s tests -v` — 19 tests,
+- Tests validés : `python3 -m unittest discover -s tests -v` — 24 tests,
   incluant jeton falsifié/expiré, chat sans session et ACL Alice/RH/IT.
 
 ## À connaître au redémarrage
@@ -68,16 +69,15 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
 ## Étape en cours
 
 Le contrat identité -> groupes -> rôles -> ACL fonctionne en simulation locale.
-Les quinze documents fictifs sont réels et contrôlés par les tests, mais la
-route de vérification ne retourne encore aucune donnée et aucun fichier n'est
-lu par l'API.
+Le lecteur contrôlé retourne un document uniquement après autorisation et ne
+lit pas de fichier en cas de refus. Aucun contenu documentaire ne va au modèle.
 
 ## Prochaine étape à décider avec l'utilisateur
 
-Concevoir le lecteur contrôlé de ces documents. Avant tout code, définir son
-contrat d'entrée, les contrôles de chemin, les erreurs, les tests de refus et la
-garantie qu'aucun passage interdit n'est lu, récupéré ou envoyé à Ollama. Ne pas
-ajouter de MCP ni de donnée réelle.
+Concevoir la recherche et récupération filtrées (RAG) de ces documents. Avant
+tout code, définir l'index, le filtrage ACL avant recherche, les tests de refus
+et la garantie qu'aucun passage interdit n'est récupéré ou envoyé à Ollama. Ne
+pas ajouter de MCP ni de donnée réelle.
 
 ## Reprise recommandée
 

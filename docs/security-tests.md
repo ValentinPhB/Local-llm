@@ -53,6 +53,9 @@ définie dans [`access-control.md`](access-control.md) et
 | UI-07 | Session Alice, `GET /api/access-check?resource_id=rh-onboarding` | Réponse `200` avec `allowed: true`, sans contenu du fichier. |
 | UI-08 | Session Alice, `GET /api/access-check?resource_id=it-workstation` | Réponse `403` avec `allowed: false`, sans lecture du fichier. |
 | UI-09 | Session Oscar, vérification de `public-welcome` puis `public-glossary` | `200` puis `403` ; aucun contenu de fichier retourné. |
+| UI-10 | Session Oscar, `GET /api/documents/public-welcome` | `200`, métadonnées et contenu du seul fichier autorisé. |
+| UI-11 | Session Oscar, `GET /api/documents/public-glossary` | `403` ; test automatisé prouve que la fonction de lecture n'est pas appelée. |
+| UI-12 | Identifiant `/api/documents/%2E%2E%2FAGENTS.md` | `400` ; aucun chemin client n'est interprété. |
 
 ## Scénarios MCP futurs
 
