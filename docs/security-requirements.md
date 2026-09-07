@@ -1,4 +1,4 @@
-# Exigences de sécurité
+# Exigences de sécurité du laboratoire
 
 Ce document décrit les contrôles attendus pour le laboratoire. Une exigence
 n'est considérée satisfaite que lorsqu'une configuration et une vérification
@@ -7,7 +7,10 @@ techniques la démontrent.
 ## Réseau
 
 - Ollama est accessible depuis le Mac via `127.0.0.1` seulement.
-- L'interface locale est liée à `127.0.0.1:3210` et sa seule cible est `http://127.0.0.1:11434`.
+- L'interface est servie par l'API locale à `127.0.0.1:3210`. Le navigateur
+  parle seulement à cette API ; l'API appelle ensuite Ollama à
+  `127.0.0.1:11434` et, lors de la future recherche sémantique, Qdrant à
+  `127.0.0.1:6333`.
 - Aucun fournisseur cloud, recherche web, import documentaire, agent ou MCP
   n'est implémenté. Qdrant local est préparé, vide et lié seulement à
   `127.0.0.1:6333`; le modèle d'embeddings local `embeddinggemma` est installé,
@@ -39,9 +42,9 @@ techniques la démontrent.
 - RBAC et ACL décident de l'accès avant l'envoi de passages au modèle.
 - Le modèle ne décide jamais si un document est accessible.
 - Une instruction contenue dans un prompt ou un document ne change jamais les permissions.
-- Les tests du lecteur démontrent déjà qu'une source refusée n'est pas lue.
-  Avant d'ajouter le RAG, ils devront aussi démontrer qu'elle n'est ni
-  récupérée ni transmise dans le contexte du modèle.
+- Les tests démontrent qu'une source refusée n'est ni lue par le lecteur, ni
+  récupérée lexicalement, ni transmise dans le contexte RAG du faux Ollama.
+  Les mêmes preuves devront couvrir la route sémantique avant son activation.
 - Le lecteur documentaire n'accepte aucun chemin client : il résout uniquement
   le chemin déclaré dans la politique, confiné à `demo-documents/`, après ACL.
 - La génération augmentée ignore tout champ client `context` ou `sources` : son

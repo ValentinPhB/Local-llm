@@ -1,4 +1,4 @@
-# Flux d’exécution actuel
+# Flux de requête de l'API locale
 
 Ce document est la référence du trajet d’une requête dans le laboratoire. Il
 doit être mis à jour lors de toute modification de session, ACL, lecture,
@@ -71,8 +71,9 @@ Route : `GET /api/documents/<resource_id>`.
 
 Exemple : Oscar peut lire `public-welcome`, mais pas `public-glossary`, RH ou IT.
 Les traces sont écrites dans `.local/audit/access-decisions.jsonl`, hors Git,
-privées et bornées. La vérification ACL est aussi journalisée ; les autres
-routes ne le sont pas encore.
+privées et bornées. Les cinq routes sensibles (vérification ACL, lecture,
+récupération, chat et chat RAG) journalisent une décision minimale ; les routes
+de session et de santé ne la journalisent pas.
 
 ## 4. Récupération contrôlée
 
@@ -88,9 +89,11 @@ Route : `POST /api/retrieve` avec `{"query":"…"}`.
 6. Au plus trois extraits de 500 caractères sont retournés à l’UI.
 ```
 
-Il n’y a pas encore d'embedding, de base vectorielle ou d'index persistant dans
-ce flux actif. Le modèle local `embeddinggemma` est installé mais non connecté
-à l'API. Une ressource interdite n’est ni lue, ni classée, ni retournée.
+Il n’y a pas encore d'embedding, de base vectorielle ni d'index persistant dans
+ce flux **actif**. Le modèle local `embeddinggemma`, les clients sémantiques et
+l'indexeur contrôlé existent séparément, mais aucune route API ne les appelle
+et Qdrant est vide. Une ressource interdite n’est ni lue, ni classée, ni
+retournée.
 
 ## 5. Chat simple
 

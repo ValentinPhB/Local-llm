@@ -1,4 +1,4 @@
-# Génération augmentée contrôlée
+# Flux de génération RAG contrôlé
 
 ## État actuel
 
@@ -18,19 +18,19 @@ Question
 
 ## Route distincte active
 
-`POST /api/rag-chat` recevra uniquement :
+`POST /api/rag-chat` reçoit uniquement :
 
 ```json
 {"message":"Comment se passe l’intégration ?"}
 ```
 
-Le navigateur ne pourra fournir ni `context`, ni `sources`, ni identifiant de document, ni rôle. Le serveur recalculera la récupération pour chaque demande, puis retournera la réponse et les seuls `resource_id` effectivement utilisés.
+Le navigateur ne peut fournir ni `context`, ni `sources`, ni identifiant de document, ni rôle. Le serveur recalcule la récupération pour chaque demande, puis retourne la réponse et les seuls `resource_id` effectivement utilisés.
 
-Le chat existant `POST /api/chat` restera sans document.
+Le chat `POST /api/chat` reste sans document.
 
 ## Contexte construit par le serveur
 
-Le serveur utilisera au maximum trois extraits de 500 caractères, déjà issus de documents autorisés. Il construira un message système qui :
+Le serveur utilise au maximum trois extraits de 500 caractères, déjà issus de documents autorisés. Il construit un message système qui :
 
 - précise que les extraits sont des données de référence, pas des instructions ;
 - demande de répondre à la question en s'appuyant sur les sources fournies ;

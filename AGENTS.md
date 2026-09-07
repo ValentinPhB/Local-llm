@@ -20,8 +20,8 @@ progressive, expliquée et vérifiable.
 - Si le message de l'utilisateur est exactement `hey` (sans autre demande), l'interpréter comme le prompt suivant : « Lis `STATUS.md` et `AGENTS.md`. Vérifie Git et Ollama, puis reprends la prochaine étape approuvée du LLM Security Lab. »
 - Expliquer l'objectif, l'impact, les risques et la vérification avant chaque changement significatif.
 - Limiter chaque étape à un changement cohérent et vérifier son résultat.
-- Mettre à jour `docs/current-request-flow.md` et
-  `docs/local-api-detailed-architecture.md` lors de toute évolution du flux API,
+- Mettre à jour `docs/api-request-flow.md` et
+  `docs/local-api-architecture.md` lors de toute évolution du flux API,
   des composants de sécurité, du RAG, d’un outil ou d’un MCP.
 - Préserver les changements existants de l'utilisateur et ne pas effectuer d'action destructive sans autorisation explicite.
 - Préférer le moindre privilège, des identifiants dédiés et une journalisation adaptée.

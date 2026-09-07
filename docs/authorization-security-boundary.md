@@ -1,4 +1,4 @@
-# Frontière d'autorisation future
+# Frontière de sécurité et d'autorisation
 
 ## État actuel
 
@@ -9,8 +9,9 @@ fournit pas d'identité à la route de chat.
 
 Ce n'est pas une authentification réelle : le choix d'identité est libre et
 sert uniquement à simuler le contrat d'un SSO. Les documents fictifs existent
-dans le dépôt et peuvent être lus par un lecteur contrôlé après ACL. Ils ne sont
-ni recherchés, ni indexés, ni transmis au LLM ; il n'existe ni outil ni MCP.
+dans le dépôt, sont lus et recherchés lexicalement seulement après ACL, puis
+peuvent fournir des extraits bornés au chat RAG. Ils ne sont pas indexés dans
+une base vectorielle ; il n'existe ni outil ni MCP.
 
 ## Architecture à ajouter avant toute donnée réelle
 
@@ -44,7 +45,8 @@ Outil MCP demandé
   un élément de l'interface ou une consigne dans le prompt.
 - Le rôle futur `mcp_read_only` d'Oscar ne pourra autoriser que l'action exacte
   `read` d'un MCP explicitement enregistré. Un MCP, une action ou un paramètre
-  inconnu est refusé. Voir [`mcp-authorization.md`](mcp-authorization.md).
+  inconnu est refusé. Voir
+  [`mcp-authorization-contract.md`](mcp-authorization-contract.md).
 
 ## Ordre de mise en œuvre
 
@@ -52,13 +54,17 @@ Outil MCP demandé
 2. Mettre en place une simulation de jeton signé et le moteur RBAC / ACL. **Fait ; pas une authentification réelle.**
 3. Ajouter des documents fictifs avec métadonnées et ACL obligatoires. **Fait :
    15 fichiers versionnés et lecteur contrôlé après ACL.**
-4. Construire la récupération filtrée, puis prouver les refus avec les scénarios
-   `SEC-01` à `SEC-05`.
-5. Ajouter un seul MCP de démonstration, sans privilège système, puis prouver
+4. Construire et tester la récupération lexicale filtrée et le chat RAG.
+   **Fait :** les scénarios de refus sont automatisés avec un faux Ollama.
+5. Ajouter la recherche sémantique en parallèle : indexeur contrôlé, writer
+   Qdrant, filtre ACL et tests d'intégration. **En cours :** l'indexeur existe,
+   mais ne réalise aucune écriture réelle.
+6. Ajouter un seul MCP de démonstration, sans privilège système, puis prouver
    que les actions interdites sont refusées.
 
 Aucune de ces étapes ne sera activée sans test de refus correspondant.
 
-Le contrat du jalon 4 est déjà défini dans
-[`controlled-retrieval-design.md`](controlled-retrieval-design.md) : récupération
-lexicale locale, ACL avant lecture et aucune transmission à Ollama à ce stade.
+Le contrat du jalon 4 est défini dans
+[`lexical-rag-retrieval.md`](lexical-rag-retrieval.md) et
+[`rag-generation-flow.md`](rag-generation-flow.md). La conception de la couche
+sémantique est dans [`semantic-rag-design.md`](semantic-rag-design.md).

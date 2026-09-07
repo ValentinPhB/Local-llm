@@ -1,4 +1,4 @@
-# Architecture détaillée de l’API locale
+# Architecture détaillée de l'API locale
 
 ## Rôle
 
@@ -30,7 +30,7 @@ Ollama est démarrée ; l’API Python existe seulement pendant l’exécution d
 | `document_store/retriever.py` | Classement lexical des seuls documents déjà autorisés. |
 | `semantic_retrieval/clients.py` | Adaptateurs Ollama embeddings et Qdrant, testés mais non raccordés à l'API. |
 | `semantic_retrieval/indexer.py` | Indexeur contrôlé : relit les seuls documents de politique, découpe et remet un lot à un writer injecté. |
-| `audit/security_log.py` | Événements d'audit minimaux et stockage local borné, utilisés pour la lecture directe de documents. |
+| `audit/security_log.py` | Événements d'audit minimaux et stockage local borné pour ACL, lecture, récupération, chat et RAG. |
 | `config/demo-idp/directory.json` | Quatre identités et leurs groupes fictifs. |
 | `config/access-control/demo-policy.json` | Groupes, rôles, ACL et chemins des 15 documents. |
 
@@ -91,9 +91,9 @@ ni les modèles, ni la configuration d’Ollama.
 5. Le récupérateur reçoit uniquement des identifiants déjà autorisés.
 6. Le chat RAG construit son contexte côté serveur, puis retourne les sources.
 7. Ollama ne reçoit jamais un chemin local, une ACL ou une permission.
-8. Chaque lecture documentaire, décision ACL, recherche, chat simple ou RAG
-   est journalisé avant son retour ; si le journal est indisponible,
-   l'opération est refusée avant toute lecture ou appel à Ollama.
+8. Chaque décision sensible déclenche une tentative de journalisation minimale.
+   Pour toute opération qui lirait un document ou appellerait Ollama, un journal
+   indisponible provoque un refus avant cette lecture ou cet appel.
 
 ## Limites connues et évolutions
 

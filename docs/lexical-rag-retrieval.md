@@ -1,4 +1,4 @@
-# Récupération contrôlée
+# Récupération lexicale RAG contrôlée
 
 ## État actuel
 
@@ -58,10 +58,12 @@ signifie pas qu'un document interdit existe.
 - Pas d'index sur disque, de base vectorielle, d'embeddings ou de cloud.
 - Pas de filtre fourni par le navigateur ; l'ACL côté serveur est le filtre.
 - Pas de contenu de document dans les journaux.
-- Pas de transfert vers Ollama et pas de modification de `POST /api/chat`.
+- `POST /api/retrieve` n'appelle pas Ollama et `POST /api/chat` reste sans
+  document. `POST /api/rag-chat` consomme toutefois ses extraits autorisés pour
+  construire son contexte côté serveur.
 - Pas de MCP.
 
-## Preuves obtenues avant la génération augmentée
+## Preuves automatisées
 
 1. Oscar obtient un extrait de `public-welcome` pour une requête correspondante.
 2. Sa liste ACL ne contient que cette ressource ; les autres documents ne sont

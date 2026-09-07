@@ -2,7 +2,7 @@
 
 ## Objet
 
-Ce document définit le futur cycle DevOps du laboratoire : comment une
+Ce document définit le cycle DevOps actuel et sa trajectoire : comment une
 modification de code, de politique RBAC, de modèle ou de composant est testée,
 analysée, approuvée puis déployée localement.
 
@@ -16,8 +16,8 @@ exécute la suite Python déterministe et Gitleaks à chaque push sur `main` et
 pull request. Elle ne déploie rien, ne télécharge aucun modèle et n'appelle pas
 Ollama.
 
-Ce document est la cible à atteindre avant de considérer le laboratoire comme
-reproductible. Il n'autorise aucun déploiement réseau ou cloud.
+Il n'autorise aucun déploiement réseau ou cloud. Les scans de dépendances,
+d'images et le SBOM sont des extensions prévues, pas des contrôles actifs.
 
 ## Briques et responsabilités de test
 
@@ -27,45 +27,34 @@ reproductible. Il n'autorise aucun déploiement réseau ou cloud.
 | Simulation SSO | `identity/demo_sso.py`, `directory.json` | signature, expiration, issuer, audience et groupes | cookie falsifié refusé par l'API | aucune clé persistante, cookie HttpOnly, identité libre interdite sur chat |
 | Politique d'accès | `demo-policy.json` | groupes -> rôles et décision RBAC/ACL | API + moteur de politique, avant tout contexte LLM | refus par défaut, absence de contournement par prompt |
 | Documents fictifs | `demo-documents/` et chemins de politique | présence, nombre, classification et métadonnées | lecteur contrôlé après ACL, avant RAG | aucun document réel, chemin déclaré obligatoire, refus avant lecture |
-| Récupération locale | `document_store/retriever.py` | classement lexical et bornage des extraits | ACL avant lecture, résultats autorisés seulement | pas d'index persistant, d'embeddings ni de transfert vers Ollama |
+| Récupération lexicale et RAG | `document_store/retriever.py`, `ui/server.py` | classement lexical, bornage, contexte serveur | ACL avant lecture, extraits autorisés seulement, faux Ollama | pas d'index vectoriel persistant, pas de contenu dans les journaux |
 | Ollama | application macOS | hors CI : logiciel tiers | API locale, version, écoute `127.0.0.1` | signature/notarisation, veille CVE avant mise à jour |
 | Modèle | manifeste et blobs Ollama | hors CI : artefact tiers | requête non sensible, mémoire et temps de réponse | licence, origine, identifiant de contenu, comportement `think` |
-| RAG futur | index, métadonnées et récupérateur | filtre ACL, extraction et chunking | aucun passage interdit envoyé au LLM | tests d'isolation utilisateur et injection documentaire |
+| RAG sémantique en préparation | `semantic_retrieval/` | clients loopback, filtre Qdrant, chunking et indexeur injecté | faux embeddings et faux writer ; Qdrant vide | aucune écriture réelle ni route API avant tests d'intégration |
 | MCP futur | passerelle et connecteurs | validation des permissions et paramètres | action autorisée/refusée avec faux service | secrets dédiés, moindre privilège, audit, scan dépendances ; Oscar limité à `read` déclaré |
 
-## Chaîne CI cible
+## CI actuelle et extensions prévues
 
-Chaque branche de travail et chaque pull request vers `main` devra déclencher :
+Aujourd'hui, chaque push sur `main` et chaque pull request vers `main` déclenche
+deux jobs : la suite Python déterministe et Gitleaks sur l'historique Git. Les
+tests Python couvrent aussi la validité JSON et les liens Markdown via les tests
+de dépôt. Ils démarrent temporairement l'API sur loopback et simulent Ollama.
+
+Les extensions suivantes ne sont pas encore configurées :
 
 ```text
-1. Validation
-   -> syntaxe Python et HTML
-   -> JSON valide pour les politiques et configurations
-   -> liens Markdown internes existants
-
-2. Tests unitaires
-   -> moteur RBAC/ACL : matrice complète autorisation/refus et groupes -> rôles
-   -> SSO fictif : signature, expiration et falsification de jeton
-   -> API : validations, session obligatoire, erreurs, lecteur après ACL et filtre de raisonnement
-
-3. Tests d'intégration isolés
-   -> serveur Python démarré temporairement sur loopback
-   -> faux serveur Ollama : aucune inférence réelle ni appel cloud
-   -> contrats HTTP : healthcheck, chat, erreurs et délais
-
-4. Sécurité et supply chain
-   -> Gitleaks : détection de secrets dans Git et son historique
+1. Sécurité et supply chain additionnelles
    -> scan des dépendances Python et Node si elles apparaissent
    -> scan d'image si un conteneur est ajouté
    -> génération d'un SBOM pour les artefacts empaquetés
 
-5. Publication du résultat CI
-   -> statut succès/échec attaché au commit
-   -> rapports de tests et scans conservés comme artefacts CI
+2. RAG sémantique
+   -> Qdrant comme service CI et tests d'intégration automatisés
+   -> aucune recette manuelle comme condition de validation
 ```
 
-Un échec à une étape bloque la fusion. Une exception exige une décision de
-risque explicite, tracée dans la pull request et la note de release.
+Une protection de branche peut ultérieurement imposer ces statuts avant fusion ;
+elle n'est pas décrite par ce dépôt.
 
 ## Installation des briques dans la CI
 
@@ -81,11 +70,11 @@ télécharger le modèle réel.
 | Interface HTML | aucun build ni package aujourd'hui | `index.html` est livré tel quel avec le code source |
 | Politique RBAC/ACL | incluse dans le commit ; validée comme JSON | les règles font partie de l'artefact à tester |
 | Ollama de test | faux serveur défini par les tests, pas Ollama réel | réponses déterministes, aucun téléchargement de modèle |
-| Outils de scan | ajoutés par le workflow CI lorsqu'il sera créé | secrets, dépendances, SBOM et images futures |
+| Outils de scan | Gitleaks est exécuté par le workflow ; les scans de dépendances, d'images et le SBOM restent à ajouter | secrets aujourd'hui, supply chain ensuite |
 
-Le futur workflow GitHub Actions commencera donc par récupérer le commit,
-installer Python, puis lancer tests et scans. Il n'appellera ni le registre
-d'Ollama ni l'API réelle du Mac.
+Le workflow actuel récupère donc le commit, installe Python 3.11, lance les
+tests puis Gitleaks. Il n'appelle ni le registre d'Ollama ni l'API réelle du
+Mac.
 
 ## Installation et déploiement local de chaque brique
 
@@ -102,7 +91,7 @@ explicite : aucun déploiement automatique n'est actif aujourd'hui.
 | Documents fictifs | fichiers Markdown versionnés avec le code ; aucun téléchargement ou index local | test 9/3/3, métadonnées et chemins référencés par la politique |
 | Ollama | application macOS téléchargée depuis la release officielle, montée en lecture seule, signature et notarisation vérifiées, puis copiée dans `/Applications` | `ollama --version`, `/api/version` et écoute `127.0.0.1:11434` |
 | Modèle | téléchargement explicite par `ollama pull <nom:tag>` ; les blobs restent dans le stockage Ollama local | `ollama list`, `ollama show`, identifiant de contenu, espace disque et test non sensible |
-| RAG futur | package verrouillé, stockage et migration de schéma explicitement choisis ; aucun document réel importé sans approbation | tests ACL avant indexation et avant récupération |
+| RAG sémantique | Qdrant local au digest verrouillé ; clients et indexeur Python déjà versionnés, writer réel encore absent | tests ACL avant indexation et avant récupération ; aucune donnée réelle |
 | MCP futur | connecteur approuvé, version/digest verrouillé, credential dédié injecté hors de Git | tests autorisation/refus et journal d'audit |
 
 ### Séquence de déploiement local actuelle
@@ -115,7 +104,8 @@ explicite : aucun déploiement automatique n'est actif aujourd'hui.
    - code/politique : Git ;
    - Ollama : DMG officiel vérifié, si une nouvelle version est prévue ;
    - modèle : ollama pull, si le manifeste cible a changé.
-5. Lancer l'API Python, puis les tests de qualification locale.
+5. Lancer la suite automatisée applicable ; la CI reste la preuve d'acceptation
+   du code.
 6. Consigner le résultat ou revenir au tag précédent.
 ```
 
@@ -147,9 +137,9 @@ prompt vers un service extérieur. Les tests d'intégration utiliseront un faux
 serveur Ollama qui renvoie des réponses déterministes. Ainsi, la CI teste notre
 code et son contrat HTTP, indépendamment de l'inférence.
 
-Les tests avec le vrai modèle restent des **tests de qualification locale** sur
-le Mac : ils valident l'installation, Metal, la mémoire, le comportement réel
-de Qwen et l'absence d'exposition réseau.
+Une vérification opérationnelle locale du vrai modèle peut confirmer
+l'installation, Metal, la mémoire et l'écoute réseau, mais elle ne remplace pas
+les tests automatisés et ne constitue pas un critère d'acceptation de code.
 
 ## Chaîne CD cible : déploiement local contrôlé
 
@@ -162,7 +152,7 @@ Commit validé sur main
     -> notes de release et manifeste des composants
     -> validation manuelle de l'utilisateur
     -> mise à jour locale d'une seule brique
-    -> tests de qualification locale
+    -> tests automatisés applicables
     -> tag de release final ou rollback
 ```
 
@@ -185,7 +175,7 @@ Une release devra produire ou référencer :
 | Rapports CI | tests, qualité, scans et versions d'outils |
 | Manifeste | versions Ollama/modèle, hash de la politique, dépendances |
 | SBOM si dépendances ou image | inventaire exploitable pour les CVE |
-| Preuves locales | commandes et résultats de qualification sur le Mac |
+| Preuves locales optionnelles | état des services et vérifications opérationnelles, sans remplacer la CI |
 
 Le modèle Ollama n'est pas intégré au dépôt Git : son nom, son identifiant de
 contenu et sa licence sont référencés dans le manifeste de release.
@@ -195,7 +185,7 @@ contenu et sa licence sont référencés dans le manifeste de release.
 | Niveau | Objectif | Données autorisées | Déploiement actuel |
 | --- | --- | --- | --- |
 | Développement | écrire et exécuter les tests | faux uniquement | local, manuel |
-| CI | vérifier automatiquement chaque changement | faux uniquement | à créer |
+| CI | vérifier automatiquement chaque push `main` et pull request | faux uniquement | GitHub Actions actif |
 | Qualification locale | vérifier le vrai Ollama et le vrai modèle | prompts non sensibles uniquement | local, manuel |
 | Release locale | état validé et documenté | faux, puis données explicitement autorisées | à créer |
 
@@ -220,10 +210,10 @@ données ou modèles créés pendant la release.
 ## Plan d'implémentation CI/CD
 
 1. **Fait :** tests Python déterministes pour RBAC/ACL, SSO, documents,
-   lecteur, récupération et RAG.
+   lecteur, récupération, RAG, clients sémantiques et indexeur contrôlé.
 2. **Fait :** faux Ollama déterministe pour les contrats chat et RAG.
 3. **Fait :** workflow GitHub Actions de tests, sans déploiement automatique.
-4. Ajouter scans de dépendances, SBOM et politique de traitement des CVE dès
+4. Ajouter scans de dépendances, d'images, SBOM et politique de traitement des CVE dès
    qu'une dépendance, une image ou un MCP est introduit.
 5. Créer un manifeste et des notes de release, puis seulement un tag
    `lab-v0.1.0` lorsque le RBAC est réellement appliqué et testé.

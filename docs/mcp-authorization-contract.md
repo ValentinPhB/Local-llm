@@ -1,4 +1,4 @@
-# Contrat d’autorisation MCP futur
+# Contrat d'autorisation des MCP futurs
 
 ## État actuel
 

@@ -1,4 +1,4 @@
-# Journal d'installation
+# Installation et services locaux
 
 Ce document enregistrera les installations réalisées dans ce laboratoire. Il ne
 doit contenir ni secret, ni token, ni mot de passe réel.
@@ -18,7 +18,7 @@ Pour chaque étape, documenter :
 
 | Élément | État |
 | --- | --- |
-| Git | Dépôt local initialisé et synchronisé avec GitHub |
+| Git | Dépôt local initialisé et relié à GitHub ; l'état de synchronisation se vérifie avec `git status --branch` |
 | Ollama | Installé, serveur local démarré (version 0.33.3) |
 | Modèles Ollama | `qwen3:4b` (2,5 GB) et `embeddinggemma` (621 MB) téléchargés localement |
 | Docker / Docker Desktop | Disponible ; Qdrant local ARM64 lancé pour préparer le RAG sémantique |
@@ -34,7 +34,7 @@ Pour chaque étape, documenter :
 - **Rôle :** serveur d'inférence local qui exécutera les modèles et exposera une API locale.
 - **Installation :** application installée dans `/Applications/Ollama.app` depuis l'image disque officielle, après vérification de la signature Developer ID et de la notarisation Gatekeeper.
 - **Command-line interface :** le raccourci `/usr/local/bin/ollama` a été autorisé lors du premier lancement ; il pointe vers l'exécutable de l'application.
-- **Données locales :** Ollama utilise `~/.ollama` pour ses modèles, réglages et journaux. Aucun modèle n'a encore été téléchargé.
+- **Données locales :** Ollama utilise `~/.ollama` pour ses modèles, réglages et journaux. Lors de l'installation initiale, aucun modèle n'était présent ; les modèles ci-dessous sont désormais installés.
 - **Réseau :** le processus écoute sur `127.0.0.1:11434`, donc uniquement depuis ce Mac.
 - **Mode local uniquement :** `~/.ollama/server.json` contient `"disable_ollama_cloud": true`. Après redémarrage, les journaux confirment `Ollama cloud disabled: true`.
 - **Premier modèle :** `qwen3:4b` (ID `359d7dd4bcda`) a été téléchargé localement ; taille indiquée par Ollama : 2,5 GB.
@@ -55,7 +55,7 @@ Pour chaque étape, documenter :
 
 - **Rôle :** page de conversation servie par `ui/server.py`, sans dépendance tierce ni conteneur.
 - **Démarrage :** `python3 ui/server.py`, puis ouvrir `http://127.0.0.1:3210`.
-- **Réseau :** le serveur est lié à `127.0.0.1:3210` et transmet uniquement à `http://127.0.0.1:11434/api/chat`.
+- **Réseau :** le serveur est lié à `127.0.0.1:3210`. Le navigateur lui parle directement ; le serveur appelle uniquement l'endpoint local `http://127.0.0.1:11434/api/chat` pour le chat et le RAG lexical.
 - **Réduction de surface :** pas de compte, clé API, import de document, conversation persistante, agent, outil ou MCP.
 - **Protection des traces :** le serveur demande `think: false` à Ollama et retire tout contenu précédant `</think>` lorsqu'un modèle renvoie malgré tout une trace balisée.
 - **Vérification :** `/healthz` retourne le modèle fixé `qwen3:4b` ; une entrée JSON invalide renvoie `400` ; le test `Réponds exactement : LOCAL-OK` a renvoyé seulement `LOCAL-OK`.
@@ -82,16 +82,16 @@ Pour chaque étape, documenter :
 ### Jeu documentaire fictif — 2026-09-07
 
 - **Rôle :** fournir des ressources réelles mais entièrement fictives pour
-  tester le lien entre fichier, métadonnées, ACL et lecteur contrôlé avant le
-  RAG.
+  tester le lien entre fichier, métadonnées, ACL, lecteur contrôlé et RAG.
 - **Installation :** aucun téléchargement ni service. Les fichiers sont livrés
   par Git sous `demo-documents/` : 9 PUBLIC, 3 RH et 3 IT.
 - **Configuration :** chaque fichier contient `id`, `classification` et
   `owner`; `config/access-control/demo-policy.json` référence le même
   identifiant, la même classification et le chemin relatif exact.
 - **Données persistantes et réseau :** uniquement des fichiers Git ; aucun port
-  ajouté, index créé ou contenu envoyé à Ollama. Leur lecture est uniquement
-  possible après ACL et via un chemin déclaré dans la politique.
+  ajouté ni index vectoriel créé. Leur lecture est uniquement possible après ACL
+  et via un chemin déclaré dans la politique ; le chat RAG peut ensuite envoyer
+  des extraits autorisés et bornés à Ollama.
 - **Vérification :** `tests/test_demo_documents.py` contrôle la répartition
   9/3/3, l'existence de chaque chemin et la cohérence des métadonnées.
 - **Lecture contrôlée :** `GET /api/documents/<resource_id>` ne lit le fichier
@@ -116,3 +116,6 @@ Pour chaque étape, documenter :
   Le conteneur ne redémarre pas automatiquement.
 - **Réseau :** seul `127.0.0.1:6333` est publié ; aucune exposition LAN ou
   Internet. La santé locale `/healthz` a répondu `healthz check passed`.
+- **État applicatif :** les clients sémantiques et l'indexeur contrôlé Python
+  sont testés avec des services simulés. Aucun writer Qdrant réel ni route API
+  ne les appelle ; la collection reste vide.

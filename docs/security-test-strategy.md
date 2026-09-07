@@ -1,8 +1,10 @@
-# Scénarios de tests de sécurité
+# Stratégie de tests de sécurité
 
 Toutes les données employées sont fictives. Les tests de session, RBAC, de
-cohérence des fichiers et de lecture contrôlée sont déjà automatisés ; les
-scénarios documentaires de récupération attendent uniquement le RAG.
+cohérence des fichiers, lecture contrôlée, récupération lexicale et chat RAG
+sont automatisés. La recherche sémantique est couverte par des tests unitaires
+avec faux fournisseur d'embeddings et faux writer ; elle n'a pas de route API
+ni d'intégration Qdrant réelle à ce stade.
 
 ## Identités et sources fictives actuelles
 
@@ -37,7 +39,7 @@ généré par le modèle, à lui seul, n'est pas une preuve suffisante.
 | SEC-06 | Client API | Requête avec `think: false` | Vérifier le contenu réel de la réponse et l'absence de trace affichée ou journalisée par l'application. |
 
 La politique fictive utilisée pour les scénarios `SEC-01` à `SEC-05` est
-définie dans [`access-control.md`](access-control.md) et
+définie dans [`rbac-acl-policy.md`](rbac-acl-policy.md) et
 `config/access-control/demo-policy.json`.
 
 ## Contrôles automatisés de l’interface
@@ -47,7 +49,6 @@ définie dans [`access-control.md`](access-control.md) et
 | UI-01 | `test_server_is_bound_to_loopback` | L'API de test est liée exclusivement à `127.0.0.1`. |
 | UI-02 | `test_chat_without_session_is_rejected_before_ollama` | Requête refusée avant l'appel modèle. |
 | UI-03 | `test_chat_removes_thinking_trace_from_fake_ollama` | La réponse ne contient pas la trace `</think>`. |
-| UI-04 | Code de `LocalUIHandler.log_message` | Le serveur supprime les journaux HTTP applicatifs ; ce contrôle est revu avec le code. |
 | UI-05 | `POST /api/chat` sans cookie de session valide | Réponse `401`, sans appel à Ollama. |
 | UI-06 | Modification d'un caractère du cookie signé | `GET /api/session` retourne `401`. |
 | UI-07 | Session Alice, `GET /api/access-check?resource_id=rh-onboarding` | Réponse `200` avec `allowed: true`, sans contenu du fichier. |
@@ -80,7 +81,10 @@ et le fait que l'API refuse un chat sans session avant d'appeler Ollama. Ils
 vérifient aussi que les quinze chemins de politique existent réellement et que
 leur front matter correspond à la classification ACL, qu'un document autorisé
 est lu après ACL, qu'un document refusé n'est pas lu et qu'un identifiant de
-type chemin est rejeté.
+type chemin est rejeté. Les tests de la couche sémantique vérifient en plus les
+destinations loopback imposées, le filtre Qdrant d'Oscar, le refus d'une liste
+ACL vide, le chunking borné, une politique invalide et l'absence d'écriture
+partielle.
 
 Le même ensemble est exécuté automatiquement par
 `.github/workflows/tests.yml` à chaque push sur `main` et à chaque pull request.

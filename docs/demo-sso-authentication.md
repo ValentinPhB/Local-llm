@@ -1,4 +1,4 @@
-# Simulation SSO locale
+# Authentification SSO de démonstration
 
 ## But pédagogique
 

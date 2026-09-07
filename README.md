@@ -28,35 +28,38 @@ Pour reprendre le projet après une interruption, consulter le fichier local
 ce fichier depuis [`STATUS.example.md`](STATUS.example.md), puis y conserver
 l'avancement propre à cette machine.
 
+Le sommaire de la documentation est dans [`docs/README.md`](docs/README.md).
 Le rôle des deux API locales est décrit dans
-[`docs/local-api-detailed-architecture.md`](docs/local-api-detailed-architecture.md).
+[`docs/local-api-architecture.md`](docs/local-api-architecture.md).
 
 La simulation locale d'un annuaire et d'un SSO est expliquée dans
-[`docs/demo-sso.md`](docs/demo-sso.md). Elle ne représente pas une connexion
+[`docs/demo-sso-authentication.md`](docs/demo-sso-authentication.md). Elle ne représente pas une connexion
 à un annuaire d'entreprise.
 
 Les quinze documents fictifs, leurs classifications et leurs limites actuelles
-sont décrits dans [`docs/demo-documents.md`](docs/demo-documents.md).
+sont décrits dans [`docs/demo-document-catalog.md`](docs/demo-document-catalog.md).
 
 Leur lecture locale autorisée et contrôlée est décrite dans
-[`docs/controlled-document-reader.md`](docs/controlled-document-reader.md).
+[`docs/controlled-document-access.md`](docs/controlled-document-access.md).
 
 La récupération lexicale filtrée active est expliquée dans
-[`docs/controlled-retrieval-design.md`](docs/controlled-retrieval-design.md).
+[`docs/lexical-rag-retrieval.md`](docs/lexical-rag-retrieval.md).
 
 La génération augmentée active est définie dans
-[`docs/augmented-generation-design.md`](docs/augmented-generation-design.md).
+[`docs/rag-generation-flow.md`](docs/rag-generation-flow.md).
 
-La conception approuvée de l’évolution vers embeddings et base vectorielle est
-dans [`docs/semantic-rag-design.md`](docs/semantic-rag-design.md) ; elle n’est
-pas encore déployée.
+L’évolution sémantique est décrite dans
+[`docs/semantic-rag-design.md`](docs/semantic-rag-design.md). Ses composants
+Python (clients et indexeur contrôlé) existent et sont testés avec des faux
+services ; elle n’est pas encore activée dans l’API et Qdrant ne contient aucun
+document.
 
 Le flux de requête et le détail des composants API sont dans
-[`docs/current-request-flow.md`](docs/current-request-flow.md) et
-[`docs/local-api-detailed-architecture.md`](docs/local-api-detailed-architecture.md).
+[`docs/api-request-flow.md`](docs/api-request-flow.md) et
+[`docs/local-api-architecture.md`](docs/local-api-architecture.md).
 
 Le contrat de lecture seule prévu pour les futurs MCP est dans
-[`docs/mcp-authorization.md`](docs/mcp-authorization.md) ; aucun MCP n'est
+[`docs/mcp-authorization-contract.md`](docs/mcp-authorization-contract.md) ; aucun MCP n'est
 encore connecté.
 
 La règle de gestion des versions et mises à jour est décrite dans

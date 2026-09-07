@@ -1,4 +1,4 @@
-# Lecteur documentaire contrôlé
+# Accès documentaire contrôlé
 
 ## État actuel
 
@@ -54,8 +54,7 @@ provoquent un refus interne générique (`500`) ; le contenu n'est pas retourné
 
 ## Limite volontaire
 
-Le navigateur peut maintenant lire un document explicitement autorisé. Le chat
-ne reçoit toujours que le message utilisateur : aucun document, même autorisé,
-n'est ajouté au prompt Ollama. Le prochain jalon sera de concevoir la recherche
-et la récupération filtrées, avec la preuve qu'un passage interdit ne peut
-jamais atteindre le modèle.
+Cette route de lecture directe retourne un document autorisé au navigateur ;
+elle n'appelle jamais Ollama. Le même lecteur est réutilisé par la récupération
+lexicale et le chat RAG, qui ne transmettent au modèle que des extraits autorisés
+et bornés. La recherche sémantique n'est pas encore connectée à l'API.
