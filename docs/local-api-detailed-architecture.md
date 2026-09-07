@@ -73,7 +73,9 @@ ni les modèles, ni la configuration d’Ollama.
   termes de recherche, extraits, messages, sources et réponses ne sont pas
   journalisés.
 - Les documents sont des fichiers Markdown fictifs versionnés dans Git.
-- Aucun index persistant, embedding, base vectorielle, conversation ou MCP n’existe.
+- Aucun index persistant, embedding intégré à l'API, base vectorielle,
+  conversation ou MCP n’existe. Le modèle local `embeddinggemma` est installé
+  dans Ollama mais n'est pas encore consommé par ce processus.
 
 ## Contrôles de frontière
 

@@ -88,8 +88,9 @@ Route : `POST /api/retrieve` avec `{"query":"…"}`.
 6. Au plus trois extraits de 500 caractères sont retournés à l’UI.
 ```
 
-Il n’y a pas d’embeddings, de base vectorielle ou d’index persistant. Une
-ressource interdite n’est ni lue, ni classée, ni retournée.
+Il n’y a pas encore d'embedding, de base vectorielle ou d'index persistant dans
+ce flux actif. Le modèle local `embeddinggemma` est installé mais non connecté
+à l'API. Une ressource interdite n’est ni lue, ni classée, ni retournée.
 
 ## 5. Chat simple
 

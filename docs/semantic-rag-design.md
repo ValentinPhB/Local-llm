@@ -8,9 +8,11 @@ vers une recherche sémantique locale, capable de rapprocher des formulations de
 sens voisin sans confier les droits d'accès au modèle.
 
 Le choix approuvé est `embeddinggemma` dans Ollama et Qdrant comme base
-vectorielle locale. Au moment de cette rédaction, ils ne sont pas encore
-téléchargés, démarrés ni appelés par l'API. La récupération lexicale et le chat
-RAG existants restent donc la référence active.
+vectorielle locale. `embeddinggemma` est installé localement et son endpoint
+Ollama a produit un vecteur de contrôle pour une phrase fictive. Qdrant n'est
+pas encore téléchargé ou démarré ; aucun document n'est indexé et l'API ne
+consomme pas encore d'embeddings. La récupération lexicale et le chat RAG
+existants restent donc la référence active.
 
 ## Composants retenus
 
