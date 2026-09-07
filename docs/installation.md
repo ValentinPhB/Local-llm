@@ -66,7 +66,7 @@ Pour chaque étape, documenter :
 - **Installation :** aucune dépendance, compte, secret persistant ou service
   supplémentaire. Le code Python standard charge
   `config/demo-idp/directory.json` au démarrage de `ui/server.py`.
-- **Identités :** Alice, Bob et Charlie sont fictifs. Le navigateur les choisit
+- **Identités :** Alice, Bob, Charlie et Oscar sont fictifs. Le navigateur les choisit
   explicitement dans le seul but de démonstration ; ce choix n'est pas une
   authentification.
 - **Données persistantes :** aucune. Une clé HMAC aléatoire est générée en

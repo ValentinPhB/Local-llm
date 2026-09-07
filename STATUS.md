@@ -27,9 +27,9 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
 - Test validé : `Réponds exactement : LOCAL-OK` a affiché seulement
   `LOCAL-OK` dans l'interface.
 - Simulation SSO locale : annuaire fictif dans `config/demo-idp/directory.json`;
-  Alice, Bob et Charlie reçoivent un JWT signé, valable 15 minutes, placé dans
-  un cookie `HttpOnly`. La clé est aléatoire, uniquement en mémoire et un
-  redémarrage invalide les sessions.
+  Alice, Bob, Charlie et Oscar reçoivent un JWT signé, valable 15 minutes,
+  placé dans un cookie `HttpOnly`. La clé est aléatoire, uniquement en mémoire
+  et un redémarrage invalide les sessions.
 - L'API vérifie le jeton avant le chat. Elle transforme ses groupes en rôles
   puis expose seulement une vérification ACL. Ce n'est pas une authentification
   : l'identité est volontairement choisie librement.
@@ -37,7 +37,11 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
   `demo-documents/` (9 PUBLIC, 3 RH, 3 IT). Leur chemin et leurs métadonnées
   correspondent à la politique ACL ; l'API ne les lit ni ne les envoie encore
   à Ollama.
-- Tests validés : `python3 -m unittest discover -s tests -v` — 17 tests,
+- Oscar est autorisé seulement sur `public-welcome`. Son rôle `mcp_read_only`
+  est un contrat pour les futurs MCP approuvés : actions `read` explicitement
+  enregistrées seulement ; toute autre action est refusée. Aucun MCP n'est
+  installé à ce stade.
+- Tests validés : `python3 -m unittest discover -s tests -v` — 19 tests,
   incluant jeton falsifié/expiré, chat sans session et ACL Alice/RH/IT.
 
 ## À connaître au redémarrage

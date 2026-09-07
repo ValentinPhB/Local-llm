@@ -7,6 +7,7 @@
   "identities": [
     {"id": "alice", "display_name": "Alice (fictif)", "groups": ["LAB_READERS", "HR"]},
     {"id": "bob", "display_name": "Bob (fictif)", "groups": ["LAB_READERS", "IT"]},
-    {"id": "charlie", "display_name": "Charlie (fictif)", "groups": ["LAB_READERS"]}
+    {"id": "charlie", "display_name": "Charlie (fictif)", "groups": ["LAB_READERS"]},
+    {"id": "oscar", "display_name": "Oscar (fictif)", "groups": ["OSCAR_PUBLIC_WELCOME_READERS", "MCP_READERS"]}
   ]
 }

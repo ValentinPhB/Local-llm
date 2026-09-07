@@ -18,12 +18,16 @@ class AccessControlTests(unittest.TestCase):
             "alice": {"PUBLIC", "RH"},
             "bob": {"PUBLIC", "IT"},
             "charlie": {"PUBLIC"},
+            "oscar": set(),
         }
         for resource in self.policy["resources"]:
             for identity_id, classifications in allowed_classifications.items():
                 with self.subTest(identity=identity_id, resource=resource["id"]):
                     decision = decide_access(self.policy, identity_id, resource["id"])
-                    self.assertEqual(decision.allowed, resource["classification"] in classifications)
+                    expected = resource["classification"] in classifications
+                    if identity_id == "oscar":
+                        expected = resource["id"] == "public-welcome"
+                    self.assertEqual(decision.allowed, expected)
 
     def test_unknown_identity_is_denied(self):
         decision = decide_access(self.policy, "unknown", "public-welcome")
@@ -52,6 +56,16 @@ class AccessControlTests(unittest.TestCase):
         self.assertEqual(roles, ("lab_reader", "rh_reader"))
         decision = decide_access_for_roles(self.policy, roles, "rh-onboarding")
         self.assertTrue(decision.allowed)
+
+    def test_oscar_is_limited_to_one_document(self):
+        roles = roles_from_groups(
+            self.policy, ("OSCAR_PUBLIC_WELCOME_READERS", "MCP_READERS")
+        )
+        self.assertEqual(roles, ("mcp_read_only", "public_welcome_reader"))
+        self.assertTrue(decide_access_for_roles(self.policy, roles, "public-welcome").allowed)
+        self.assertFalse(decide_access_for_roles(self.policy, roles, "public-glossary").allowed)
+        self.assertFalse(decide_access_for_roles(self.policy, roles, "rh-onboarding").allowed)
+        self.assertFalse(decide_access_for_roles(self.policy, roles, "it-workstation").allowed)
 
     def test_invalid_group_mapping_fails_closed(self):
         invalid_policy = dict(self.policy)

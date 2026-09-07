@@ -5,20 +5,25 @@
   "group_role_mappings": [
     {"group": "LAB_READERS", "role": "lab_reader"},
     {"group": "HR", "role": "rh_reader"},
-    {"group": "IT", "role": "it_reader"}
+    {"group": "IT", "role": "it_reader"},
+    {"group": "OSCAR_PUBLIC_WELCOME_READERS", "role": "public_welcome_reader"},
+    {"group": "MCP_READERS", "role": "mcp_read_only"}
   ],
   "roles": [
     {"id": "lab_reader", "description": "Can read PUBLIC resources."},
     {"id": "rh_reader", "description": "Can read RH resources in addition to PUBLIC resources."},
-    {"id": "it_reader", "description": "Can read IT resources in addition to PUBLIC resources."}
+    {"id": "it_reader", "description": "Can read IT resources in addition to PUBLIC resources."},
+    {"id": "public_welcome_reader", "description": "Can read only the public-welcome document."},
+    {"id": "mcp_read_only", "description": "Future MCP contract: only explicitly registered read actions; deny all unknown actions."}
   ],
   "identities": [
     {"id": "alice", "display_name": "Alice (fictif)", "roles": ["lab_reader", "rh_reader"]},
     {"id": "bob", "display_name": "Bob (fictif)", "roles": ["lab_reader", "it_reader"]},
-    {"id": "charlie", "display_name": "Charlie (fictif)", "roles": ["lab_reader"]}
+    {"id": "charlie", "display_name": "Charlie (fictif)", "roles": ["lab_reader"]},
+    {"id": "oscar", "display_name": "Oscar (fictif)", "roles": ["public_welcome_reader", "mcp_read_only"]}
   ],
   "resources": [
-    {"id": "public-welcome", "classification": "PUBLIC", "path": "demo-documents/public/welcome.md", "allowed_roles": ["lab_reader"]},
+    {"id": "public-welcome", "classification": "PUBLIC", "path": "demo-documents/public/welcome.md", "allowed_roles": ["lab_reader", "public_welcome_reader"]},
     {"id": "public-model-guidelines", "classification": "PUBLIC", "path": "demo-documents/public/model-guidelines.md", "allowed_roles": ["lab_reader"]},
     {"id": "public-incident-reporting", "classification": "PUBLIC", "path": "demo-documents/public/incident-reporting.md", "allowed_roles": ["lab_reader"]},
     {"id": "public-meeting-rooms", "classification": "PUBLIC", "path": "demo-documents/public/meeting-rooms.md", "allowed_roles": ["lab_reader"]},

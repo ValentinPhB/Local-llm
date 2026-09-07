@@ -15,7 +15,7 @@ Choix explicite d'une identité fictive dans le navigateur
     -> groupes fiables -> rôles applicatifs -> décision RBAC/ACL
 ```
 
-La sélection d'Alice, Bob ou Charlie est libre. Elle **ne constitue pas une
+La sélection d'Alice, Bob, Charlie ou Oscar est libre. Elle **ne constitue pas une
 authentification réelle** et ne doit jamais être présentée comme telle. Elle
 permet de simuler une assertion d'identité et de tester les refus avant de
 connecter un futur fournisseur OIDC d'entreprise.
@@ -24,7 +24,7 @@ connecter un futur fournisseur OIDC d'entreprise.
 
 | Fichier | Rôle |
 | --- | --- |
-| `config/demo-idp/directory.json` | Annuaire fictif : issuer, audience, durée et groupes des trois identités. |
+| `config/demo-idp/directory.json` | Annuaire fictif : issuer, audience, durée et groupes des quatre identités. |
 | `identity/demo_sso.py` | Émet et vérifie les JWT de démonstration. |
 | `config/access-control/demo-policy.json` | Traduit les groupes (`HR`, `IT`…) en rôles applicatifs et définit les ACL. |
 | `access_control/engine.py` | Prend la décision déterministe, sans LLM. |

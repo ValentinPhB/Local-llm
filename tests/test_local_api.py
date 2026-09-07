@@ -72,6 +72,19 @@ class LocalAPITests(unittest.TestCase):
         self.assertEqual(status, 401)
         self.assertIn("Session", payload["error"])
 
+    def test_oscar_can_only_access_public_welcome(self):
+        headers = self.start_demo_session("oscar")
+        status, payload, _ = self.request(
+            "GET", "/api/access-check?resource_id=public-welcome", headers=headers
+        )
+        self.assertEqual(status, 200)
+        self.assertTrue(payload["allowed"])
+        status, payload, _ = self.request(
+            "GET", "/api/access-check?resource_id=public-glossary", headers=headers
+        )
+        self.assertEqual(status, 403)
+        self.assertFalse(payload["allowed"])
+
 
 if __name__ == "__main__":
     unittest.main()

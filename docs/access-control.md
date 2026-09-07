@@ -30,6 +30,7 @@ l'annuaire possède des groupes tandis que l'application possède ses rôles.
 | Alice | Autorisé | Autorisé | Refusé |
 | Bob | Autorisé | Refusé | Autorisé |
 | Charlie | Autorisé | Refusé | Refusé |
+| Oscar | `public-welcome` seulement | Refusé | Refusé |
 
 Cette matrice correspond aux identités et documents fictifs des scénarios
 `SEC-01` à `SEC-05`. Lors de la future récupération documentaire, le filtre
@@ -42,6 +43,11 @@ neuf PUBLIC, trois RH et trois IT. Chaque ressource contient son `path`, son
 `classification` et ses `allowed_roles`; le fichier lui-même porte les mêmes
 métadonnées dans son front matter. Le détail est dans
 [`demo-documents.md`](demo-documents.md).
+
+Oscar n'a pas le rôle `lab_reader` : le rôle `public_welcome_reader` apparaît
+seulement dans l'ACL de `public-welcome`. Son rôle séparé `mcp_read_only` ne
+donne aucun droit documentaire. Son contrat pour les MCP futurs est décrit dans
+[`mcp-authorization.md`](mcp-authorization.md).
 
 ## Limites actuelles
 

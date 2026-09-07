@@ -27,3 +27,6 @@ progressive, expliquée et vérifiable.
 
 - Ne pas ajouter, configurer ou connecter de serveur MCP sans décision explicite.
 - Définir pour chaque outil les permissions minimales, les actions interdites et les mécanismes d'audit avant son utilisation.
+- Le rôle de démonstration `mcp_read_only` d'Oscar ne peut servir qu'à une
+  action `read` explicitement déclarée pour un MCP approuvé ; refuser toute
+  autre action ou tout MCP inconnu.

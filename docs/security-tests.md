@@ -11,6 +11,7 @@ récupération attendent l'ajout du lecteur contrôlé puis du RAG.
 | Alice | RH | PUBLIC, RH |
 | Bob | IT | PUBLIC, IT |
 | Charlie | Employés | PUBLIC |
+| Oscar | Lecture ciblée | `public-welcome` seulement |
 
 | Source | Documents fictifs | Accès prévu |
 | --- | --- | --- |
@@ -51,6 +52,15 @@ définie dans [`access-control.md`](access-control.md) et
 | UI-06 | Modification d'un caractère du cookie signé | `GET /api/session` retourne `401`. |
 | UI-07 | Session Alice, `GET /api/access-check?resource_id=rh-onboarding` | Réponse `200` avec `allowed: true`, sans contenu du fichier. |
 | UI-08 | Session Alice, `GET /api/access-check?resource_id=it-workstation` | Réponse `403` avec `allowed: false`, sans lecture du fichier. |
+| UI-09 | Session Oscar, vérification de `public-welcome` puis `public-glossary` | `200` puis `403` ; aucun contenu de fichier retourné. |
+
+## Scénarios MCP futurs
+
+| ID | Identité | Requête | Résultat attendu |
+| --- | --- | --- | --- |
+| MCP-01 | Oscar | Action `read` d'un MCP explicitement enregistré | Autorisation possible après validation des paramètres. |
+| MCP-02 | Oscar | Action `write`, `delete`, `execute` ou `admin` | Refus côté serveur. |
+| MCP-03 | Oscar | MCP ou action non enregistré | Refus côté serveur. |
 
 ## Tests automatisés actuels
 

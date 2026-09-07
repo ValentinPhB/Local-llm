@@ -41,6 +41,9 @@ techniques la démontrent.
 - Une option client telle que `think: false` n'est pas considérée comme une garantie de suppression de ces traces sans test du contenu réellement reçu.
 - Les routes de chat ne doivent jamais accepter un identifiant, des groupes ou
   des rôles choisis par le navigateur. Elles utilisent la session vérifiée.
+- Le rôle futur `mcp_read_only` n'autorise que des actions `read` déclarées
+  d'un MCP approuvé ; il ne vaut jamais pour une action inconnue, d'écriture,
+  d'exécution, d'administration ou de suppression.
 
 ## Conteneurs et outils futurs
 

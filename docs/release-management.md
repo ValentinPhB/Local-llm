@@ -28,7 +28,7 @@ reproductible. Il n'autorise aucun déploiement réseau ou cloud.
 | Ollama | application macOS | hors CI : logiciel tiers | API locale, version, écoute `127.0.0.1` | signature/notarisation, veille CVE avant mise à jour |
 | Modèle | manifeste et blobs Ollama | hors CI : artefact tiers | requête non sensible, mémoire et temps de réponse | licence, origine, identifiant de contenu, comportement `think` |
 | RAG futur | index, métadonnées et récupérateur | filtre ACL, extraction et chunking | aucun passage interdit envoyé au LLM | tests d'isolation utilisateur et injection documentaire |
-| MCP futur | passerelle et connecteurs | validation des permissions et paramètres | action autorisée/refusée avec faux service | secrets dédiés, moindre privilège, audit, scan dépendances |
+| MCP futur | passerelle et connecteurs | validation des permissions et paramètres | action autorisée/refusée avec faux service | secrets dédiés, moindre privilège, audit, scan dépendances ; Oscar limité à `read` déclaré |
 
 ## Chaîne CI cible
 

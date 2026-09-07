@@ -42,6 +42,9 @@ Outil MCP demandé
   les paramètres interdits, un identifiant dédié et une trace d'audit.
 - Les permissions sont appliquées côté serveur ; elles ne reposent jamais sur
   un élément de l'interface ou une consigne dans le prompt.
+- Le rôle futur `mcp_read_only` d'Oscar ne pourra autoriser que l'action exacte
+  `read` d'un MCP explicitement enregistré. Un MCP, une action ou un paramètre
+  inconnu est refusé. Voir [`mcp-authorization.md`](mcp-authorization.md).
 
 ## Ordre de mise en œuvre
 

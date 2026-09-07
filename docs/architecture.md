@@ -32,6 +32,7 @@ Modèle local sur Apple Silicon
 | Simulation SSO locale | Émettre un jeton signé pour une identité fictive choisie explicitement | Prouver une identité réelle ou remplacer un IdP d'entreprise |
 | API du laboratoire | Vérifier la session, traduire les groupes en rôles et appliquer l'ACL | Croire une identité libre envoyée avec un chat, ou déléguer un droit au LLM |
 | Future couche RAG | Rechercher parmi les documents déjà autorisés et retourner les passages pertinents | Rendre un document non autorisé accessible au modèle |
+| Future passerelle MCP | Autoriser une action déclarée pour un MCP approuvé | Donner un accès implicite à un MCP ou à une action inconnus |
 | Ollama | Exécuter localement l'inférence et servir son API | Gérer les droits applicatifs ou exposer l'API hors de la machine |
 | LLM | Produire une réponse à partir du prompt et du contexte reçus | Accéder directement au filesystem, décider des permissions ou utiliser des credentials d'administration |
 

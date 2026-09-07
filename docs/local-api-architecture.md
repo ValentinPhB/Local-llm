@@ -36,7 +36,7 @@ Elle n'est pas encore installée comme service permanent.
 | --- | --- | --- |
 | `GET /` | Retourne la page `ui/index.html`. | Interface de conversation. |
 | `GET /healthz` | Vérifie que le serveur Python répond. | `{"status":"ok","model":"qwen3:4b"}` |
-| `POST /api/demo-session` | Émet une session fictive signée après choix explicite d'Alice, Bob ou Charlie. | Cookie `HttpOnly` et identité affichable. |
+| `POST /api/demo-session` | Émet une session fictive signée après choix explicite d'Alice, Bob, Charlie ou Oscar. | Cookie `HttpOnly` et identité affichable. |
 | `GET /api/session` | Vérifie et retourne l'identité fictive de la session. | `{"authenticated":true,"identity":{…}}` |
 | `GET /api/access-check?resource_id=…` | Évalue l'ACL d'un document fictif avec les groupes du jeton, sans lire le fichier. | `{"resource_id":"rh-onboarding","allowed":true}` |
 | `POST /api/logout` | Invalide le cookie côté navigateur. | `{"authenticated":false}` |
