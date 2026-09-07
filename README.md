@@ -24,3 +24,6 @@ locale est accessible durant son exécution sur `http://127.0.0.1:3210`.
 
 Pour reprendre le projet après une interruption, consulter d'abord
 [`STATUS.md`](STATUS.md).
+
+Le rôle des deux API locales est décrit dans
+[`docs/local-api-architecture.md`](docs/local-api-architecture.md).
