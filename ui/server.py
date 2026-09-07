@@ -59,6 +59,7 @@ DIRECTORY_PATH = ROOT / "config" / "demo-idp" / "directory.json"
 # Toute réponse qui contient une fermeture </think> est donc tronquée avant elle.
 THINKING_PREFIX = re.compile(r"^.*?</think>\s*", re.DOTALL | re.IGNORECASE)
 DOCUMENT_AUDIT_ROUTE = "/api/documents/:resource_id"
+ACCESS_CHECK_AUDIT_ROUTE = "/api/access-check"
 
 
 class ApplicationState:
@@ -160,8 +161,9 @@ class LocalUIHandler(BaseHTTPRequestHandler):
             "Path=/; HttpOnly; SameSite=Strict"
         )
 
-    def _record_document_decision(
+    def _record_access_decision(
         self,
+        route: str,
         outcome: str,
         session: VerifiedIdentity | None = None,
         resource_id: str | None = None,
@@ -170,7 +172,7 @@ class LocalUIHandler(BaseHTTPRequestHandler):
 
         try:
             self.state.audit_log.record_access_decision(
-                route=DOCUMENT_AUDIT_ROUTE,
+                route=route,
                 outcome=outcome,
                 identity_id=session.identity_id if session else None,
                 resource_id=resource_id,
@@ -190,16 +192,29 @@ class LocalUIHandler(BaseHTTPRequestHandler):
                 self.send_json(HTTPStatus.OK, self._identity_body(session))
             return
         if request.path == "/api/access-check":
-            session = self._require_session()
+            # Même traitement que la lecture documentaire : une décision ACL
+            # est sensible et ne doit pas être communiquée sans être tracée.
+            session = self._session()
             if session is None:
+                self._record_access_decision(ACCESS_CHECK_AUDIT_ROUTE, "denied")
+                self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Session de démonstration requise."})
                 return
             values = parse_qs(request.query, keep_blank_values=True)
             resource_ids = values.get("resource_id", [])
             if len(resource_ids) != 1 or not resource_ids[0]:
+                self._record_access_decision(ACCESS_CHECK_AUDIT_ROUTE, "denied", session)
                 self.send_json(HTTPStatus.BAD_REQUEST, {"error": "Ressource de démonstration invalide."})
                 return
             roles = roles_from_groups(self.state.policy, session.groups)
             decision = decide_access_for_roles(self.state.policy, roles, resource_ids[0])
+            if not self._record_access_decision(
+                ACCESS_CHECK_AUDIT_ROUTE,
+                "allowed" if decision.allowed else "denied",
+                session,
+                resource_ids[0],
+            ):
+                self.send_json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Journal de sécurité indisponible."})
+                return
             # Le résultat est volontairement minimal : pas de rôle, de groupe ou de
             # motif détaillé transmis au navigateur.
             status = HTTPStatus.OK if decision.allowed else HTTPStatus.FORBIDDEN
@@ -210,12 +225,12 @@ class LocalUIHandler(BaseHTTPRequestHandler):
             # refus anonyme, sans journaliser le cookie présenté.
             session = self._session()
             if session is None:
-                self._record_document_decision("denied")
+                self._record_access_decision(DOCUMENT_AUDIT_ROUTE, "denied")
                 self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Session de démonstration requise."})
                 return
             resource_id = request.path.removeprefix("/api/documents/")
             if not RESOURCE_ID.fullmatch(resource_id):
-                self._record_document_decision("denied", session)
+                self._record_access_decision(DOCUMENT_AUDIT_ROUTE, "denied", session)
                 self.send_json(HTTPStatus.BAD_REQUEST, {"error": "Ressource de démonstration invalide."})
                 return
             roles = roles_from_groups(self.state.policy, session.groups)
@@ -223,12 +238,14 @@ class LocalUIHandler(BaseHTTPRequestHandler):
             if not decision.allowed:
                 # Ne pas lire le document, ni distinguer une ressource inconnue
                 # d'une ressource interdite.
-                self._record_document_decision("denied", session, resource_id)
+                self._record_access_decision(DOCUMENT_AUDIT_ROUTE, "denied", session, resource_id)
                 self.send_json(HTTPStatus.FORBIDDEN, {"error": "Accès au document refusé."})
                 return
             # En cas d'indisponibilité du journal, ne pas exposer un document
             # autorisé sans trace de décision : la lecture échoue donc fermée.
-            if not self._record_document_decision("allowed", session, resource_id):
+            if not self._record_access_decision(
+                DOCUMENT_AUDIT_ROUTE, "allowed", session, resource_id
+            ):
                 self.send_json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Journal de sécurité indisponible."})
                 return
             try:

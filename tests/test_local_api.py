@@ -6,7 +6,12 @@ import unittest
 from unittest.mock import patch
 
 from audit.security_log import AuditStorageError, SecurityAuditLog
-from ui.server import DOCUMENT_AUDIT_ROUTE, SESSION_COOKIE_NAME, create_server
+from ui.server import (
+    ACCESS_CHECK_AUDIT_ROUTE,
+    DOCUMENT_AUDIT_ROUTE,
+    SESSION_COOKIE_NAME,
+    create_server,
+)
 
 
 class FakeOllamaResponse:
@@ -90,10 +95,44 @@ class LocalAPITests(unittest.TestCase):
         status, payload, _ = self.request("GET", "/api/access-check?resource_id=rh-onboarding", headers=headers)
         self.assertEqual(status, 200)
         self.assertTrue(payload["allowed"])
+        event = json.loads(self.audit_output.getvalue().splitlines()[-1])
+        self.assertEqual(event["route"], ACCESS_CHECK_AUDIT_ROUTE)
+        self.assertEqual(event["outcome"], "allowed")
+        self.assertEqual(event["identity_id"], "alice")
+        self.assertEqual(event["resource_id"], "rh-onboarding")
 
         status, payload, _ = self.request("GET", "/api/access-check?resource_id=it-workstation", headers=headers)
         self.assertEqual(status, 403)
         self.assertFalse(payload["allowed"])
+        event = json.loads(self.audit_output.getvalue().splitlines()[-1])
+        self.assertEqual(event["route"], ACCESS_CHECK_AUDIT_ROUTE)
+        self.assertEqual(event["outcome"], "denied")
+        self.assertEqual(event["resource_id"], "it-workstation")
+
+    def test_access_check_without_session_is_audited_as_anonymous_denial(self):
+        status, payload, _ = self.request("GET", "/api/access-check?resource_id=public-welcome")
+
+        self.assertEqual(status, 401)
+        self.assertIn("Session", payload["error"])
+        event = json.loads(self.audit_output.getvalue().splitlines()[-1])
+        self.assertEqual(event["route"], ACCESS_CHECK_AUDIT_ROUTE)
+        self.assertEqual(event["outcome"], "denied")
+        self.assertIsNone(event["identity_id"])
+        self.assertIsNone(event["resource_id"])
+
+    def test_access_check_is_not_disclosed_when_audit_storage_is_unavailable(self):
+        headers = self.start_demo_session("alice")
+        with patch.object(
+            self.audit_log,
+            "record_access_decision",
+            side_effect=AuditStorageError("unavailable"),
+        ):
+            status, payload, _ = self.request(
+                "GET", "/api/access-check?resource_id=rh-onboarding", headers=headers
+            )
+
+        self.assertEqual(status, 503)
+        self.assertIn("Journal", payload["error"])
 
     def test_modified_cookie_is_rejected(self):
         headers = self.start_demo_session("bob")

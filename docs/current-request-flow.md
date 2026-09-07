@@ -46,6 +46,11 @@ Cookie de session
 Un refus renvoie une erreur au navigateur. Le modèle ne participe jamais à
 cette décision.
 
+Pour `GET /api/access-check`, la décision est journalisée avant son retour au
+navigateur. Si le stockage d'audit est indisponible, la route renvoie `503`
+plutôt qu'une décision ACL non tracée. La trace ne contient pas les groupes ni
+le cookie.
+
 ## 3. Lecture directe d’un document
 
 Route : `GET /api/documents/<resource_id>`.
@@ -66,7 +71,8 @@ Route : `GET /api/documents/<resource_id>`.
 
 Exemple : Oscar peut lire `public-welcome`, mais pas `public-glossary`, RH ou IT.
 Les traces sont écrites dans `.local/audit/access-decisions.jsonl`, hors Git,
-privées et bornées ; les autres routes ne sont pas encore journalisées.
+privées et bornées. La vérification ACL est aussi journalisée ; les autres
+routes ne le sont pas encore.
 
 ## 4. Récupération contrôlée
 

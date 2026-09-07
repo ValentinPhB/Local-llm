@@ -70,9 +70,9 @@ techniques la démontrent.
   de Git, avec permissions de fichier `600`, répertoire `700`, plafond de 1 Mo
   et un seul fichier de sauvegarde après rotation. La taille maximale est donc
   d'environ 2 Mo.
-- La lecture directe `GET /api/documents/<id>` alimente ce journal pour les
-  décisions autorisées et refusées. Un échec de stockage bloque toute lecture
-  autorisée avec `503`, afin de ne pas exposer de document sans trace.
-- Le chat, le RAG, la recherche et la vérification ACL ne sont pas encore
-  journalisés.
+- La lecture directe `GET /api/documents/<id>` et la vérification
+  `GET /api/access-check` alimentent ce journal pour les décisions autorisées
+  et refusées. Un échec de stockage retourne `503`, afin de ne pas exposer de
+  document ou de décision ACL sans trace.
+- Le chat, le RAG et la recherche ne sont pas encore journalisés.
 - Les journaux seront examinés sans y inscrire de données ou secrets réels.
