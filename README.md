@@ -27,3 +27,6 @@ Pour reprendre le projet après une interruption, consulter d'abord
 
 Le rôle des deux API locales est décrit dans
 [`docs/local-api-architecture.md`](docs/local-api-architecture.md).
+
+La règle de gestion des versions et mises à jour est décrite dans
+[`docs/release-management.md`](docs/release-management.md).
