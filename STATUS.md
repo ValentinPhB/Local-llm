@@ -50,15 +50,15 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
 ## Étape en cours
 
 Un jeu de données RBAC/ACL entièrement fictif est défini dans
-`config/access-control/demo-policy.json`. Il décrit Alice, Bob et Charlie,
-leurs rôles et trois ressources de démonstration. Aucun compte, document réel
-ou contrôle d'accès applicatif n'a encore été créé.
+`config/access-control/demo-policy.json`. Le moteur déterministe
+`access_control/engine.py` l'évalue avec refus par défaut. Aucun compte,
+document réel ou intégration à l'interface HTTP n'a encore été créé.
 
 ## Prochaine étape approuvée
 
-Construire un moteur local déterministe qui évalue cette politique fictive et
-le tester contre la matrice attendue. Ne pas encore importer de document réel,
-relier ce moteur à l'interface, ni ajouter de MCP.
+Préparer une identité de démonstration de confiance côté serveur et connecter
+le moteur RBAC/ACL à l'API locale. Ne pas encore accepter une identité libre
+depuis le navigateur, importer de document réel, ni ajouter de MCP.
 
 ## Reprise recommandée
 

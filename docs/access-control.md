@@ -33,5 +33,19 @@ sera appliqué avant toute recherche et avant l'envoi de passages au LLM.
 
 - Il n'existe pas encore de connexion utilisateur ni de session.
 - Les ressources ne sont pas encore des fichiers ou des documents importés.
-- La politique est un contrat de test ; son moteur d'évaluation sera ajouté à
-  l'étape suivante.
+- Le moteur `access_control/engine.py` évalue maintenant la politique sous
+  forme de fonction interne. Il n'est pas encore relié à une session ou à
+  l'interface HTTP.
+
+## Moteur déterministe
+
+`decide_access(policy, identity_id, resource_id)` retourne une décision avec :
+
+- `allowed` : booléen d'autorisation ;
+- `reason` : `role_match`, `insufficient_role`, `unknown_identity`,
+  `unknown_resource` ou `invalid_policy` ;
+- `matched_roles` : rôle utilisé lorsqu'une autorisation est accordée.
+
+Le moteur refuse systématiquement une politique invalide, une identité inconnue
+ou une ressource inconnue. Les tests standards Python sont dans
+`tests/test_access_control.py`.
