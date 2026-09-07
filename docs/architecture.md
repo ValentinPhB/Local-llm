@@ -13,8 +13,8 @@ Interface locale minimale du projet
     v
 API locale du laboratoire
   - vérification du jeton et traduction groupes -> rôles
-  - RBAC/ACL sur ressources fictives
-  - aucune fonction d'agent, RAG ou MCP configurée
+  - RBAC/ACL sur 15 documents fictifs classifiés
+  - aucune fonction de lecture documentaire, RAG ou MCP configurée
     |
     | prompt seul ; passages autorisés plus tard
     v

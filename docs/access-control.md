@@ -31,9 +31,9 @@ l'annuaire possède des groupes tandis que l'application possède ses rôles.
 | Bob | Autorisé | Refusé | Autorisé |
 | Charlie | Autorisé | Refusé | Refusé |
 
-Cette matrice correspond aux identités et marqueurs fictifs des scénarios
+Cette matrice correspond aux identités et documents fictifs des scénarios
 `SEC-01` à `SEC-05`. Lors de la future récupération documentaire, le filtre
-sera appliqué avant toute recherche et avant l'envoi de passages au LLM.
+sera appliqué avant toute lecture, recherche et envoi de passages au LLM.
 
 ## Ressources physiques de démonstration
 

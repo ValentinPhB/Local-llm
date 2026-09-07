@@ -7,7 +7,8 @@ l'architecture et la sécurité d'une plateforme LLM sur macOS Apple Silicon.
 
 Construire et analyser une architecture locale composée d'Ollama, d'une
 interface minimale fournie par ce dépôt
-et, plus tard, de bases documentaires RAG soumises à des contrôles d'accès.
+et, plus tard, d'une récupération RAG de documents déjà soumis à des contrôles
+d'accès.
 
 ## Principes de sécurité
 

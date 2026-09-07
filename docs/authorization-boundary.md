@@ -4,12 +4,13 @@
 
 Le laboratoire est local et propose trois identités fictives. Il émet un jeton
 signé de courte durée, le vérifie côté serveur et transforme ses groupes en
-rôles avant d'évaluer les ACL de ressources fictives. Le navigateur ne fournit
-pas d'identité à la route de chat.
+rôles avant d'évaluer les ACL de quinze documents fictifs. Le navigateur ne
+fournit pas d'identité à la route de chat.
 
 Ce n'est pas une authentification réelle : le choix d'identité est libre et
-sert uniquement à simuler le contrat d'un SSO. Il n'existe toujours ni
-document, ni outil, ni MCP.
+sert uniquement à simuler le contrat d'un SSO. Les documents fictifs existent
+dans le dépôt, mais aucun n'est encore lu par l'API ; il n'existe ni outil ni
+MCP.
 
 ## Architecture à ajouter avant toute donnée réelle
 

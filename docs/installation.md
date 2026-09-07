@@ -24,6 +24,7 @@ Pour chaque étape, documenter :
 | Docker / Docker Desktop | Disponible, aucun conteneur du laboratoire lancé |
 | Interface locale minimale | Créée et testée ; démarrage manuel nécessaire |
 | Annuaire / SSO de démonstration | Fictif, local, jetons signés éphémères ; aucun annuaire d'entreprise |
+| Documents de démonstration | 15 fichiers Markdown fictifs, versionnés et classifiés ; aucune lecture API/RAG |
 | Ports réseau du laboratoire | Ollama : `127.0.0.1:11434` ; interface : `127.0.0.1:3210` |
 
 ## Entrées d'installation
@@ -76,3 +77,18 @@ Pour chaque étape, documenter :
 - **Vérification :** `python3 -m unittest discover -s tests -v` teste la
   signature, l'expiration et la falsification de jeton, ainsi que le refus du
   chat sans session et les décisions ACL Alice/RH et Alice/IT.
+
+### Jeu documentaire fictif — 2026-09-07
+
+- **Rôle :** fournir des ressources réelles mais entièrement fictives pour
+  tester le lien entre fichier, métadonnées et ACL avant toute fonctionnalité
+  de lecture ou de RAG.
+- **Installation :** aucun téléchargement ni service. Les fichiers sont livrés
+  par Git sous `demo-documents/` : 9 PUBLIC, 3 RH et 3 IT.
+- **Configuration :** chaque fichier contient `id`, `classification` et
+  `owner`; `config/access-control/demo-policy.json` référence le même
+  identifiant, la même classification et le chemin relatif exact.
+- **Données persistantes et réseau :** uniquement des fichiers Git ; aucun port
+  ajouté, index créé ou contenu envoyé à Ollama.
+- **Vérification :** `tests/test_demo_documents.py` contrôle la répartition
+  9/3/3, l'existence de chaque chemin et la cohérence des métadonnées.

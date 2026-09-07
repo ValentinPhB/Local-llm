@@ -1,8 +1,8 @@
 # Scénarios de tests de sécurité
 
-Toutes les données employées sont fictives. Les tests de session et de RBAC
-sont déjà automatisés ; les scénarios documentaires attendent l'ajout de
-documents fictifs et d'une récupération RAG.
+Toutes les données employées sont fictives. Les tests de session, RBAC et de
+cohérence des fichiers sont déjà automatisés ; les scénarios documentaires de
+récupération attendent l'ajout du lecteur contrôlé puis du RAG.
 
 ## Identités et sources prévues
 

@@ -10,7 +10,8 @@ d'accès.
 
 Ils ne sont pas encore indexés, recherchés ni envoyés à Ollama. À ce stade,
 l'API ne retourne que la décision `autorisé` ou `refusé` associée à leur
-identifiant.
+identifiant : elle ne lit pas le fichier, y compris lorsque l'accès est
+autorisé.
 
 ## Répartition imposée
 

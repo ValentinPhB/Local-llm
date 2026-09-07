@@ -8,7 +8,7 @@ techniques la démontrent.
 
 - Ollama est accessible depuis le Mac via `127.0.0.1` seulement.
 - L'interface locale est liée à `127.0.0.1:3210` et sa seule cible est `http://127.0.0.1:11434`.
-- Aucun fournisseur cloud, recherche web, import documentaire, agent ou MCP n'est implémenté durant cette phase.
+- Aucun fournisseur cloud, recherche web, lecteur/import documentaire, agent ou MCP n'est implémenté durant cette phase. Les fichiers fictifs versionnés ne sont pas servis par l'API.
 - Aucun port n'est publié sur le LAN ou Internet sans décision explicite et documentée.
 - L'API Ollama ne doit pas être exposée directement à des utilisateurs non authentifiés.
 - Les fonctions cloud et la recherche web d'Ollama sont désactivées pendant la phase locale du laboratoire.
@@ -16,6 +16,9 @@ techniques la démontrent.
 ## Données et secrets
 
 - Les scénarios de test utilisent exclusivement des documents et secrets fictifs.
+- Les quinze documents de démonstration restent sous `demo-documents/`, sont
+  versionnés et classifiés ; aucun document réel ne les remplace sans décision
+  explicite et revue des contrôles.
 - Les fichiers `.env`, clés privées, credentials et tokens réels restent hors de Git.
 - La clé de signature du SSO fictif est éphémère et n'est jamais écrite dans le
   dépôt, un fichier de configuration ou les journaux.
@@ -32,7 +35,8 @@ techniques la démontrent.
 - RBAC et ACL décident de l'accès avant l'envoi de passages au modèle.
 - Le modèle ne décide jamais si un document est accessible.
 - Une instruction contenue dans un prompt ou un document ne change jamais les permissions.
-- Les tests démontrent qu'une source non autorisée n'est pas récupérée dans le contexte du modèle.
+- Avant d'ajouter le RAG, les tests devront démontrer qu'une source non
+  autorisée n'est ni lue, ni récupérée, ni transmise dans le contexte du modèle.
 - Les traces de raisonnement éventuelles sont traitées comme des données potentiellement sensibles : elles ne doivent pas être affichées ou journalisées par défaut.
 - Une option client telle que `think: false` n'est pas considérée comme une garantie de suppression de ces traces sans test du contenu réellement reçu.
 - Les routes de chat ne doivent jamais accepter un identifiant, des groupes ou

@@ -95,7 +95,8 @@ explicite : aucun déploiement automatique n'est actif aujourd'hui.
 | Code du laboratoire | `git fetch origin`, puis sélection du commit/tag validé ; les fichiers Python, HTML et JSON arrivent ensemble | `git status --branch` et commit attendu |
 | Python | fourni actuellement par les Command Line Tools de macOS ; aucune librairie tierce n'est installée pour l'interface | `python3 --version`, puis compilation et tests |
 | API locale Python | pas d'installation système : démarrage explicite avec `python3 ui/server.py` | `curl http://127.0.0.1:3210/healthz` et écoute `127.0.0.1:3210` |
-| Politique RBAC/ACL | fichier JSON livré avec le même commit que le code ; pas de base de données ni migration à ce stade | validation JSON et matrice autorisation/refus |
+| Politique RBAC/ACL | fichier JSON livré avec le même commit que le code ; pas de base de données ni migration à ce stade | validation JSON, matrice autorisation/refus et chemins de documents |
+| Documents fictifs | fichiers Markdown versionnés avec le code ; aucun téléchargement ou index local | test 9/3/3, métadonnées et chemins référencés par la politique |
 | Ollama | application macOS téléchargée depuis la release officielle, montée en lecture seule, signature et notarisation vérifiées, puis copiée dans `/Applications` | `ollama --version`, `/api/version` et écoute `127.0.0.1:11434` |
 | Modèle | téléchargement explicite par `ollama pull <nom:tag>` ; les blobs restent dans le stockage Ollama local | `ollama list`, `ollama show`, identifiant de contenu, espace disque et test non sensible |
 | RAG futur | package verrouillé, stockage et migration de schéma explicitement choisis ; aucun document réel importé sans approbation | tests ACL avant indexation et avant récupération |

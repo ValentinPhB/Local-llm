@@ -20,7 +20,8 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
 - Modèle local : `qwen3:4b`, environ 2,5 GB sur disque ; environ 3,2 GB en
   mémoire pendant une inférence.
 - Interface locale minimale : `ui/server.py`, servie uniquement sur
-  `127.0.0.1:3210`, sans compte réel, document, RAG, agent, outil ou MCP.
+  `127.0.0.1:3210`, sans compte réel, lecture documentaire, RAG, agent, outil
+  ou MCP.
 - Le serveur fixe le modèle à `qwen3:4b`, n'enregistre pas les messages et
   retire le préfixe de raisonnement Qwen jusqu'à `</think>` lorsqu'il apparaît.
 - Test validé : `Réponds exactement : LOCAL-OK` a affiché seulement
