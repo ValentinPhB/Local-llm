@@ -2,9 +2,14 @@
 
 ## État actuel
 
-Le laboratoire est mono-utilisateur et local. L'interface minimale ne reçoit
-ni identité, ni document, ni outil : elle ne peut donc pas encore appliquer de
-droits d'accès. Cette simplicité est intentionnelle.
+Le laboratoire est local et propose trois identités fictives. Il émet un jeton
+signé de courte durée, le vérifie côté serveur et transforme ses groupes en
+rôles avant d'évaluer les ACL de ressources fictives. Le navigateur ne fournit
+pas d'identité à la route de chat.
+
+Ce n'est pas une authentification réelle : le choix d'identité est libre et
+sert uniquement à simuler le contrat d'un SSO. Il n'existe toujours ni
+document, ni outil, ni MCP.
 
 ## Architecture à ajouter avant toute donnée réelle
 
@@ -39,9 +44,9 @@ Outil MCP demandé
 
 ## Ordre de mise en œuvre
 
-1. Définir des identités fictives, rôles et ressources de démonstration.
-2. Mettre en place l'authentification et le moteur RBAC / ACL.
-3. Ajouter l'import de documents avec propriétaire et ACL obligatoires.
+1. Définir des identités fictives, rôles et ressources de démonstration. **Fait.**
+2. Mettre en place une simulation de jeton signé et le moteur RBAC / ACL. **Fait ; pas une authentification réelle.**
+3. Ajouter l'import de documents fictifs avec propriétaire et ACL obligatoires.
 4. Construire la récupération filtrée et prouver les refus avec les scénarios
    `SEC-01` à `SEC-05`.
 5. Ajouter un seul MCP de démonstration, sans privilège système, puis prouver

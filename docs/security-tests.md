@@ -1,8 +1,8 @@
 # Scénarios de tests de sécurité
 
-Ces tests seront exécutés après la configuration de l'authentification, des
-groupes, des sources documentaires et de leurs permissions. Toutes les données
-employées sont fictives.
+Toutes les données employées sont fictives. Les tests de session et de RBAC
+sont déjà automatisés ; les scénarios documentaires attendent l'ajout de
+documents fictifs et d'une récupération RAG.
 
 ## Identités et sources prévues
 
@@ -47,6 +47,20 @@ définie dans [`access-control.md`](access-control.md) et
 | UI-02 | `POST /api/chat` avec `{"message":42}` | Réponse `400`, sans appel au modèle. |
 | UI-03 | Message de test qui provoque une trace Qwen | La réponse visible ne contient ni la trace ni la balise `</think>`. |
 | UI-04 | Inspection du code et des journaux | Aucun prompt ou réponse n'est enregistré par le serveur. |
+| UI-05 | `POST /api/chat` sans cookie de session valide | Réponse `401`, sans appel à Ollama. |
+| UI-06 | Modification d'un caractère du cookie signé | `GET /api/session` retourne `401`. |
+| UI-07 | Session Alice, `GET /api/access-check?resource_id=rh-demo` | Réponse `200` avec `allowed: true`. |
+| UI-08 | Session Alice, `GET /api/access-check?resource_id=it-demo` | Réponse `403` avec `allowed: false`. |
+
+## Tests automatisés actuels
+
+```text
+python3 -m unittest discover -s tests -v
+```
+
+Ils valident la matrice RBAC/ACL, la conversion groupes -> rôles, les refus
+sur politique ambiguë, la signature du jeton, son expiration, sa falsification
+et le fait que l'API refuse un chat sans session avant d'appeler Ollama.
 
 ## Preuves à conserver lors de l'exécution
 

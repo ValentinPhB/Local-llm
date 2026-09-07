@@ -2,6 +2,11 @@
   "schema_version": "1.0",
   "purpose": "Fictional RBAC/ACL policy for the local LLM security lab. Not an authentication system.",
   "default_decision": "deny",
+  "group_role_mappings": [
+    {"group": "LAB_READERS", "role": "lab_reader"},
+    {"group": "HR", "role": "rh_reader"},
+    {"group": "IT", "role": "it_reader"}
+  ],
   "roles": [
     {"id": "lab_reader", "description": "Can read PUBLIC resources."},
     {"id": "rh_reader", "description": "Can read RH resources in addition to PUBLIC resources."},

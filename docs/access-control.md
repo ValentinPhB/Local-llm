@@ -2,20 +2,26 @@
 
 Le fichier `config/access-control/demo-policy.json` est un jeu de données
 fictif utilisé pour concevoir et tester les contrôles d'accès. Il ne crée pas
-de comptes, ne fournit pas d'authentification et n'est pas encore utilisé par
-l'interface locale.
+de comptes et ne fournit pas d'authentification réelle. Il est désormais
+utilisé par l'API locale après la vérification d'un jeton de démonstration.
 
 ## Décision attendue
 
 La décision est prise côté serveur selon la règle suivante :
 
 ```text
-si l'identité possède au moins un rôle présent dans allowed_roles : autoriser
+si un groupe vérifié est traduit en rôle présent dans allowed_roles : autoriser
 sinon : refuser
 ```
 
-L'absence d'identité, de rôle ou de ressource entraîne un refus. Aucune phrase
-du prompt, du document ou du LLM ne participe à cette décision.
+L'absence d'identité vérifiée, de rôle, de ressource ou une politique invalide
+entraîne un refus. Aucune phrase du prompt, du document ou du LLM ne participe
+à cette décision.
+
+Les groupes viennent de `config/demo-idp/directory.json`, intégré au jeton
+signé, puis `group_role_mappings` les traduit : `LAB_READERS -> lab_reader`,
+`HR -> rh_reader`, `IT -> it_reader`. Cette séparation reproduit le fait que
+l'annuaire possède des groupes tandis que l'application possède ses rôles.
 
 ## Matrice attendue
 
@@ -31,11 +37,11 @@ sera appliqué avant toute recherche et avant l'envoi de passages au LLM.
 
 ## Limites actuelles
 
-- Il n'existe pas encore de connexion utilisateur ni de session.
 - Les ressources ne sont pas encore des fichiers ou des documents importés.
-- Le moteur `access_control/engine.py` évalue maintenant la politique sous
-  forme de fonction interne. Il n'est pas encore relié à une session ou à
-  l'interface HTTP.
+- La session est une simulation libre locale, non une identité réelle.
+- La route de démonstration ne retourne aucune donnée de ressource : elle
+  montre seulement autorisé ou refusé. Le filtrage de documents avant RAG reste
+  la prochaine étape.
 
 ## Moteur déterministe
 
@@ -48,4 +54,6 @@ sera appliqué avant toute recherche et avant l'envoi de passages au LLM.
 
 Le moteur refuse systématiquement une politique invalide, une identité inconnue
 ou une ressource inconnue. Les tests standards Python sont dans
-`tests/test_access_control.py`.
+`tests/test_access_control.py`. L'API utilise plutôt
+`roles_from_groups(...)`, puis `decide_access_for_roles(...)`, car elle reçoit
+des groupes après vérification du jeton.

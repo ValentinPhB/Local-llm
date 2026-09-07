@@ -28,5 +28,9 @@ Pour reprendre le projet après une interruption, consulter d'abord
 Le rôle des deux API locales est décrit dans
 [`docs/local-api-architecture.md`](docs/local-api-architecture.md).
 
+La simulation locale d'un annuaire et d'un SSO est expliquée dans
+[`docs/demo-sso.md`](docs/demo-sso.md). Elle ne représente pas une connexion
+à un annuaire d'entreprise.
+
 La règle de gestion des versions et mises à jour est décrite dans
 [`docs/release-management.md`](docs/release-management.md).

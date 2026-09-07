@@ -21,8 +21,9 @@ reproductible. Il n'autorise aucun déploiement réseau ou cloud.
 
 | Brique | Code ou artefact | Tests unitaires | Tests d'intégration | Contrôles sécurité |
 | --- | --- | --- | --- | --- |
-| Interface/API locale | `ui/server.py`, `ui/index.html` | Validation de message, filtre `</think>`, erreurs HTTP | Serveur démarré, `/healthz`, `/api/chat` avec Ollama simulé | écoute loopback, pas de logs de prompts, analyse Python |
-| Politique d'accès | `demo-policy.json` | Décision RBAC/ACL pour chaque identité/ressource | API + moteur de politique, avant l'appel LLM | refus par défaut, absence de contournement par prompt |
+| Interface/API locale | `ui/server.py`, `ui/index.html` | Validation de message, filtre `</think>`, erreurs HTTP | Serveur démarré, session refusée/acceptée, `/api/chat` avec Ollama simulé | écoute loopback, pas de logs de prompts, analyse Python |
+| Simulation SSO | `identity/demo_sso.py`, `directory.json` | signature, expiration, issuer, audience et groupes | cookie falsifié refusé par l'API | aucune clé persistante, cookie HttpOnly, identité libre interdite sur chat |
+| Politique d'accès | `demo-policy.json` | groupes -> rôles et décision RBAC/ACL | API + moteur de politique, avant tout contexte LLM | refus par défaut, absence de contournement par prompt |
 | Ollama | application macOS | hors CI : logiciel tiers | API locale, version, écoute `127.0.0.1` | signature/notarisation, veille CVE avant mise à jour |
 | Modèle | manifeste et blobs Ollama | hors CI : artefact tiers | requête non sensible, mémoire et temps de réponse | licence, origine, identifiant de contenu, comportement `think` |
 | RAG futur | index, métadonnées et récupérateur | filtre ACL, extraction et chunking | aucun passage interdit envoyé au LLM | tests d'isolation utilisateur et injection documentaire |
@@ -39,8 +40,9 @@ Chaque branche de travail et chaque pull request vers `main` devra déclencher :
    -> formatage et contrôle statique
 
 2. Tests unitaires
-   -> moteur RBAC/ACL : matrice complète autorisation/refus
-   -> API : validations, erreurs et filtre de raisonnement
+   -> moteur RBAC/ACL : matrice complète autorisation/refus et groupes -> rôles
+   -> SSO fictif : signature, expiration et falsification de jeton
+   -> API : validations, session obligatoire, erreurs et filtre de raisonnement
 
 3. Tests d'intégration isolés
    -> serveur Python démarré temporairement sur loopback

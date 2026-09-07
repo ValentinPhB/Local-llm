@@ -17,18 +17,26 @@ techniques la démontrent.
 
 - Les scénarios de test utilisent exclusivement des documents et secrets fictifs.
 - Les fichiers `.env`, clés privées, credentials et tokens réels restent hors de Git.
+- La clé de signature du SSO fictif est éphémère et n'est jamais écrite dans le
+  dépôt, un fichier de configuration ou les journaux.
 - Les données persistantes des services sont identifiées avant leur création.
 - Aucun répertoire personnel complet ou racine du système n'est monté dans un conteneur.
 
 ## Autorisation et RAG
 
-- L'authentification identifie l'utilisateur avant toute recherche documentaire.
+- La simulation locale vérifie signature, émetteur, audience et expiration du
+  jeton avant d'utiliser son sujet ou ses groupes. Elle ne constitue pas une
+  authentification réelle, car l'identité de démonstration est choisie librement.
+- Une intégration entreprise vérifiera les jetons de l'IdP réel avant toute
+  recherche documentaire ; l'API ne recevra pas le mot de passe utilisateur.
 - RBAC et ACL décident de l'accès avant l'envoi de passages au modèle.
 - Le modèle ne décide jamais si un document est accessible.
 - Une instruction contenue dans un prompt ou un document ne change jamais les permissions.
 - Les tests démontrent qu'une source non autorisée n'est pas récupérée dans le contexte du modèle.
 - Les traces de raisonnement éventuelles sont traitées comme des données potentiellement sensibles : elles ne doivent pas être affichées ou journalisées par défaut.
 - Une option client telle que `think: false` n'est pas considérée comme une garantie de suppression de ces traces sans test du contenu réellement reçu.
+- Les routes de chat ne doivent jamais accepter un identifiant, des groupes ou
+  des rôles choisis par le navigateur. Elles utilisent la session vérifiée.
 
 ## Conteneurs et outils futurs
 

@@ -7,31 +7,121 @@
     <style>
       body { background: #10151d; color: #edf2f7; font: 16px system-ui, sans-serif; margin: 0; }
       main { margin: 3rem auto; max-width: 760px; padding: 0 1.25rem; }
-      h1 { margin-bottom: .25rem; } p { color: #b8c4d3; }
-      #reply { background: #19212c; border-radius: .5rem; min-height: 5rem; padding: 1rem; white-space: pre-wrap; }
+      h1 { margin-bottom: .25rem; } p, li { color: #b8c4d3; }
+      section, #reply { background: #19212c; border-radius: .5rem; margin-top: 1rem; padding: 1rem; }
+      section h2 { font-size: 1rem; margin: 0 0 .5rem; }
+      #reply { min-height: 5rem; white-space: pre-wrap; }
       form { display: grid; gap: .75rem; margin-top: 1rem; }
       textarea { background: #19212c; border: 1px solid #526174; border-radius: .5rem; color: inherit; font: inherit; min-height: 7rem; padding: .75rem; resize: vertical; }
-      button { background: #4f8cff; border: 0; border-radius: .5rem; color: white; font: inherit; padding: .7rem 1rem; width: fit-content; }
-      button:disabled { opacity: .6; } .note { font-size: .9rem; }
+      button { background: #4f8cff; border: 0; border-radius: .5rem; color: white; cursor: pointer; font: inherit; padding: .7rem 1rem; width: fit-content; }
+      button:disabled { cursor: wait; opacity: .6; } .note { font-size: .9rem; }
+      .identities { display: flex; flex-wrap: wrap; gap: .5rem; } .secondary { background: #3a4657; }
+      #access-list { display: grid; gap: .25rem; margin: .75rem 0 0; padding-left: 1.25rem; }
+      .allowed { color: #79d9a2; } .denied { color: #ff9d9d; }
     </style>
   </head>
   <body>
     <main>
       <h1>LLM Security Lab</h1>
       <p>Modèle local : <code>qwen3:4b</code> via Ollama sur cette machine.</p>
-      <div id="reply" aria-live="polite">Prêt.</div>
+
+      <section aria-labelledby="identity-title">
+        <h2 id="identity-title">Identité de démonstration</h2>
+        <p id="session-status">Aucune session de démonstration active.</p>
+        <div class="identities" id="identity-actions">
+          <button type="button" data-identity="alice">Simuler Alice</button>
+          <button type="button" data-identity="bob">Simuler Bob</button>
+          <button type="button" data-identity="charlie">Simuler Charlie</button>
+          <button type="button" class="secondary" id="logout" hidden>Fermer la session</button>
+        </div>
+        <ul id="access-list" hidden></ul>
+        <p class="note">Simulation locale uniquement : choisir une identité ici ne prouve pas qui tu es. Le but est de tester le jeton signé, les groupes et les droits avant un futur SSO d’entreprise.</p>
+      </section>
+
+      <div id="reply" aria-live="polite">Choisis une identité de démonstration pour commencer.</div>
       <form id="chat">
         <label for="message">Message</label>
         <textarea id="message" maxlength="8000" required></textarea>
         <button id="send" type="submit">Envoyer</button>
       </form>
-      <p class="note">Cette interface n'enregistre pas les échanges et n'offre ni outil, ni MCP, ni import de document.</p>
+      <p class="note">Cette interface n'enregistre pas les échanges et n'offre ni outil, ni MCP, ni import de document. Les droits affichés portent sur des ressources fictives ; aucun document n’est encore envoyé au modèle.</p>
     </main>
     <script>
       const form = document.querySelector('#chat');
       const message = document.querySelector('#message');
       const reply = document.querySelector('#reply');
       const send = document.querySelector('#send');
+      const sessionStatus = document.querySelector('#session-status');
+      const accessList = document.querySelector('#access-list');
+      const logout = document.querySelector('#logout');
+      const identityButtons = [...document.querySelectorAll('[data-identity]')];
+      const resources = ['public-demo', 'rh-demo', 'it-demo'];
+
+      async function readJson(response) {
+        try { return await response.json(); } catch { return {}; }
+      }
+
+      function setIdentityButtons(disabled) {
+        identityButtons.forEach((button) => { button.disabled = disabled; });
+      }
+
+      async function showAccess() {
+        accessList.replaceChildren();
+        const results = await Promise.all(resources.map(async (resourceId) => {
+          const response = await fetch(`/api/access-check?resource_id=${encodeURIComponent(resourceId)}`);
+          const body = await readJson(response);
+          return {resourceId, allowed: response.ok && body.allowed === true};
+        }));
+        for (const result of results) {
+          const item = document.createElement('li');
+          item.className = result.allowed ? 'allowed' : 'denied';
+          item.textContent = `${result.resourceId} : ${result.allowed ? 'autorisé' : 'refusé'}`;
+          accessList.append(item);
+        }
+        accessList.hidden = false;
+      }
+
+      async function refreshSession() {
+        const response = await fetch('/api/session');
+        const body = await readJson(response);
+        if (!response.ok || !body.authenticated) {
+          sessionStatus.textContent = 'Aucune session de démonstration active.';
+          accessList.hidden = true;
+          logout.hidden = true;
+          return false;
+        }
+        sessionStatus.textContent = `Session signée de démonstration : ${body.identity.display_name}.`;
+        logout.hidden = false;
+        await showAccess();
+        return true;
+      }
+
+      identityButtons.forEach((button) => button.addEventListener('click', async () => {
+        setIdentityButtons(true);
+        reply.textContent = 'Création de la session de démonstration…';
+        try {
+          const response = await fetch('/api/demo-session', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({identity_id: button.dataset.identity}),
+          });
+          const body = await readJson(response);
+          if (!response.ok) throw new Error(body.error || 'Session refusée.');
+          await refreshSession();
+          reply.textContent = 'Session créée. Tu peux maintenant tester la conversation locale.';
+        } catch (error) {
+          reply.textContent = error.message || 'Impossible de créer la session de démonstration.';
+        } finally {
+          setIdentityButtons(false);
+        }
+      }));
+
+      logout.addEventListener('click', async () => {
+        await fetch('/api/logout', {method: 'POST'});
+        await refreshSession();
+        reply.textContent = 'Session de démonstration fermée.';
+      });
+
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
         send.disabled = true;
@@ -42,7 +132,7 @@
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({message: message.value}),
           });
-          const body = await result.json();
+          const body = await readJson(result);
           reply.textContent = body.content || body.error || 'Réponse vide.';
         } catch {
           reply.textContent = 'Impossible de joindre l’interface locale.';
@@ -50,6 +140,8 @@
           send.disabled = false;
         }
       });
+
+      refreshSession();
     </script>
   </body>
 </html>

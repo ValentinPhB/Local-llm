@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Fictional local identity directory for the LLM Security Lab. It is not an enterprise directory or a real authentication service.",
+  "issuer": "local-demo-idp",
+  "audience": "local-llm-lab-api",
+  "token_ttl_seconds": 900,
+  "identities": [
+    {"id": "alice", "display_name": "Alice (fictif)", "groups": ["LAB_READERS", "HR"]},
+    {"id": "bob", "display_name": "Bob (fictif)", "groups": ["LAB_READERS", "IT"]},
+    {"id": "charlie", "display_name": "Charlie (fictif)", "groups": ["LAB_READERS"]}
+  ]
+}

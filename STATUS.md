@@ -20,11 +20,20 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
 - Modèle local : `qwen3:4b`, environ 2,5 GB sur disque ; environ 3,2 GB en
   mémoire pendant une inférence.
 - Interface locale minimale : `ui/server.py`, servie uniquement sur
-  `127.0.0.1:3210`, sans compte, document, RAG, agent, outil ou MCP.
+  `127.0.0.1:3210`, sans compte réel, document, RAG, agent, outil ou MCP.
 - Le serveur fixe le modèle à `qwen3:4b`, n'enregistre pas les messages et
   retire le préfixe de raisonnement Qwen jusqu'à `</think>` lorsqu'il apparaît.
 - Test validé : `Réponds exactement : LOCAL-OK` a affiché seulement
   `LOCAL-OK` dans l'interface.
+- Simulation SSO locale : annuaire fictif dans `config/demo-idp/directory.json`;
+  Alice, Bob et Charlie reçoivent un JWT signé, valable 15 minutes, placé dans
+  un cookie `HttpOnly`. La clé est aléatoire, uniquement en mémoire et un
+  redémarrage invalide les sessions.
+- L'API vérifie le jeton avant le chat. Elle transforme ses groupes en rôles
+  puis expose seulement une vérification ACL de ressources fictives. Ce n'est
+  pas une authentification : l'identité est volontairement choisie librement.
+- Tests validés : `python3 -m unittest discover -s tests -v` — 15 tests,
+  incluant jeton falsifié/expiré, chat sans session et ACL Alice/RH/IT.
 
 ## À connaître au redémarrage
 
@@ -49,16 +58,16 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
 
 ## Étape en cours
 
-Un jeu de données RBAC/ACL entièrement fictif est défini dans
-`config/access-control/demo-policy.json`. Le moteur déterministe
-`access_control/engine.py` l'évalue avec refus par défaut. Aucun compte,
-document réel ou intégration à l'interface HTTP n'a encore été créé.
+Le contrat identité -> groupes -> rôles -> ACL fonctionne en simulation locale
+mais ne protège encore aucun document : les ressources sont seulement des
+identifiants fictifs et la route de vérification ne renvoie aucune donnée.
 
-## Prochaine étape approuvée
+## Prochaine étape à décider avec l'utilisateur
 
-Préparer une identité de démonstration de confiance côté serveur et connecter
-le moteur RBAC/ACL à l'API locale. Ne pas encore accepter une identité libre
-depuis le navigateur, importer de document réel, ni ajouter de MCP.
+Concevoir un premier jeu de documents strictement fictifs, leurs métadonnées
+de classification et leur import contrôlé. Avant tout code, définir le format,
+le stockage local, les tests de refus et la garantie qu'aucun passage interdit
+n'est récupéré ou envoyé à Ollama. Ne pas ajouter de MCP ni de donnée réelle.
 
 ## Reprise recommandée
 

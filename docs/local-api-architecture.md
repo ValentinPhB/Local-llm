@@ -8,6 +8,8 @@ entre le navigateur et Ollama.
 
 ```text
 Navigateur  ->  API du laboratoire (Python, port 3210)
+                    -> simulation SSO locale : jeton signé + cookie HttpOnly
+                    -> groupes -> rôles -> ACL
                     -> API native d'Ollama (port 11434)
                     -> modèle qwen3:4b
 ```
@@ -34,7 +36,11 @@ Elle n'est pas encore installée comme service permanent.
 | --- | --- | --- |
 | `GET /` | Retourne la page `ui/index.html`. | Interface de conversation. |
 | `GET /healthz` | Vérifie que le serveur Python répond. | `{"status":"ok","model":"qwen3:4b"}` |
-| `POST /api/chat` | Reçoit un message du navigateur et l'envoie à Ollama. | `{"content":"…"}` |
+| `POST /api/demo-session` | Émet une session fictive signée après choix explicite d'Alice, Bob ou Charlie. | Cookie `HttpOnly` et identité affichable. |
+| `GET /api/session` | Vérifie et retourne l'identité fictive de la session. | `{"authenticated":true,"identity":{…}}` |
+| `GET /api/access-check?resource_id=…` | Évalue une ACL fictive avec les groupes du jeton. | `{"resource_id":"rh-demo","allowed":true}` |
+| `POST /api/logout` | Invalide le cookie côté navigateur. | `{"authenticated":false}` |
+| `POST /api/chat` | Vérifie d'abord la session, puis envoie le message à Ollama. | `{"content":"…"}` |
 
 La route `POST /api/chat` attend uniquement un JSON de cette forme :
 
@@ -50,12 +56,13 @@ URL d'Ollama, ni transmettre un outil.
 
 ```text
 1. Le navigateur charge index.html depuis 127.0.0.1:3210.
-2. Le JavaScript du bouton « Envoyer » appelle POST /api/chat.
-3. server.py vérifie le format et la taille du message.
-4. server.py fabrique une requête vers 127.0.0.1:11434/api/chat.
-5. Ollama transmet la demande à qwen3:4b et retourne du JSON.
-6. server.py retire une éventuelle trace de raisonnement Qwen.
-7. server.py renvoie seulement le champ content au navigateur.
+2. En mode démonstration, il choisit une identité fictive une seule fois.
+3. server.py émet un jeton signé temporaire dans un cookie `HttpOnly`.
+4. Le JavaScript du bouton « Envoyer » appelle POST /api/chat sans identité libre.
+5. server.py vérifie signature, expiration, issuer et audience du jeton.
+6. server.py vérifie le format et la taille du message, puis appelle Ollama.
+7. Ollama transmet la demande à qwen3:4b et retourne du JSON.
+8. server.py retire une éventuelle trace de raisonnement Qwen et renvoie `content`.
 ```
 
 Le navigateur communique donc avec l'API Python. Python communique ensuite avec
@@ -82,15 +89,15 @@ fichiers de configuration.
 
 ## Ce que Python ne fait pas encore
 
-- pas d'authentification ni de session utilisateur ;
-- pas de contrôle RBAC/ACL appliqué à une requête réelle ;
+- pas d'authentification réelle ni de connexion à un annuaire d'entreprise ;
+- pas de document sur lequel appliquer l'ACL ;
 - pas de base documentaire, import de fichier ou RAG ;
 - pas de MCP, d'outil ou de credential ;
 - pas de persistance des conversations.
 
-La prochaine évolution RBAC s'insérera à l'étape 3 du trajet : avant tout appel
-à Ollama, le serveur évaluera l'identité fictive et la ressource demandée. Une
-décision de refus empêchera donc l'envoi du contexte au modèle.
+La prochaine évolution utilisera l'ACL sur des documents fictifs : le serveur
+filtrera les ressources avant la recherche et avant l'envoi de tout passage à
+Ollama. Une décision de refus empêchera donc l'envoi du contexte au modèle.
 
 ## Démarrage et vérification
 

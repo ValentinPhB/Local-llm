@@ -23,6 +23,7 @@ Pour chaque étape, documenter :
 | Modèle LLM | `qwen3:4b` téléchargé localement (2,5 GB selon Ollama) |
 | Docker / Docker Desktop | Disponible, aucun conteneur du laboratoire lancé |
 | Interface locale minimale | Créée et testée ; démarrage manuel nécessaire |
+| Annuaire / SSO de démonstration | Fictif, local, jetons signés éphémères ; aucun annuaire d'entreprise |
 | Ports réseau du laboratoire | Ollama : `127.0.0.1:11434` ; interface : `127.0.0.1:3210` |
 
 ## Entrées d'installation
@@ -56,3 +57,22 @@ Pour chaque étape, documenter :
 - **Réduction de surface :** pas de compte, clé API, import de document, conversation persistante, agent, outil ou MCP.
 - **Protection des traces :** le serveur demande `think: false` à Ollama et retire tout contenu précédant `</think>` lorsqu'un modèle renvoie malgré tout une trace balisée.
 - **Vérification :** `/healthz` retourne le modèle fixé `qwen3:4b` ; une entrée JSON invalide renvoie `400` ; le test `Réponds exactement : LOCAL-OK` a renvoyé seulement `LOCAL-OK`.
+
+### Simulation SSO locale — 2026-09-07
+
+- **Rôle :** simuler le contrat entre un annuaire d'entreprise et l'API sans
+  connecter d'annuaire ni créer de compte réel.
+- **Installation :** aucune dépendance, compte, secret persistant ou service
+  supplémentaire. Le code Python standard charge
+  `config/demo-idp/directory.json` au démarrage de `ui/server.py`.
+- **Identités :** Alice, Bob et Charlie sont fictifs. Le navigateur les choisit
+  explicitement dans le seul but de démonstration ; ce choix n'est pas une
+  authentification.
+- **Données persistantes :** aucune. Une clé HMAC aléatoire est générée en
+  mémoire à chaque démarrage ; tous les cookies de session deviennent invalides
+  après redémarrage.
+- **Réseau :** aucune nouvelle écoute. Les routes SSO et RBAC font partie du
+  processus déjà limité à `127.0.0.1:3210`.
+- **Vérification :** `python3 -m unittest discover -s tests -v` teste la
+  signature, l'expiration et la falsification de jeton, ainsi que le refus du
+  chat sans session et les décisions ACL Alice/RH et Alice/IT.
