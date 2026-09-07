@@ -1,10 +1,10 @@
 # Scénarios de tests de sécurité
 
-Toutes les données employées sont fictives. Les tests de session, RBAC et de
-cohérence des fichiers sont déjà automatisés ; les scénarios documentaires de
-récupération attendent l'ajout du lecteur contrôlé puis du RAG.
+Toutes les données employées sont fictives. Les tests de session, RBAC, de
+cohérence des fichiers et de lecture contrôlée sont déjà automatisés ; les
+scénarios documentaires de récupération attendent uniquement le RAG.
 
-## Identités et sources prévues
+## Identités et sources fictives actuelles
 
 | Identité | Groupe | Sources autorisées |
 | --- | --- | --- |
@@ -75,7 +75,9 @@ Ils valident la matrice RBAC/ACL, la conversion groupes -> rôles, les refus
 sur politique ambiguë, la signature du jeton, son expiration, sa falsification
 et le fait que l'API refuse un chat sans session avant d'appeler Ollama. Ils
 vérifient aussi que les quinze chemins de politique existent réellement et que
-leur front matter correspond à la classification ACL.
+leur front matter correspond à la classification ACL, qu'un document autorisé
+est lu après ACL, qu'un document refusé n'est pas lu et qu'un identifiant de
+type chemin est rejeté.
 
 ## Preuves à conserver lors de l'exécution
 

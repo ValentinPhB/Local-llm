@@ -76,13 +76,13 @@ Pour chaque étape, documenter :
   processus déjà limité à `127.0.0.1:3210`.
 - **Vérification :** `python3 -m unittest discover -s tests -v` teste la
   signature, l'expiration et la falsification de jeton, ainsi que le refus du
-  chat sans session et les décisions ACL Alice/RH et Alice/IT.
+  chat sans session et les décisions ACL Alice/RH, Alice/IT et Oscar ciblé.
 
 ### Jeu documentaire fictif — 2026-09-07
 
 - **Rôle :** fournir des ressources réelles mais entièrement fictives pour
-  tester le lien entre fichier, métadonnées et ACL avant toute fonctionnalité
-  de lecture ou de RAG.
+  tester le lien entre fichier, métadonnées, ACL et lecteur contrôlé avant le
+  RAG.
 - **Installation :** aucun téléchargement ni service. Les fichiers sont livrés
   par Git sous `demo-documents/` : 9 PUBLIC, 3 RH et 3 IT.
 - **Configuration :** chaque fichier contient `id`, `classification` et
@@ -93,3 +93,7 @@ Pour chaque étape, documenter :
   possible après ACL et via un chemin déclaré dans la politique.
 - **Vérification :** `tests/test_demo_documents.py` contrôle la répartition
   9/3/3, l'existence de chaque chemin et la cohérence des métadonnées.
+- **Lecture contrôlée :** `GET /api/documents/<resource_id>` ne lit le fichier
+  qu'après session et ACL ; `tests/test_document_reader.py` et
+  `tests/test_local_api.py` vérifient la lecture autorisée, le refus avant
+  lecture et le blocage d'un identifiant assimilable à un chemin.

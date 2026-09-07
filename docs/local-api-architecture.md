@@ -69,6 +69,11 @@ URL d'Ollama, ni transmettre un outil.
 Le navigateur communique donc avec l'API Python. Python communique ensuite avec
 Ollama. Le navigateur ne contacte pas directement le port 11434.
 
+La route de lecture documentaire reste entièrement dans l'API Python : après
+ACL, elle lit un fichier fictif et le renvoie au navigateur. Elle ne contacte
+jamais Ollama. Son contrat est détaillé dans
+[`controlled-document-reader.md`](controlled-document-reader.md).
+
 ## Ce que Python adapte
 
 Avant l'appel à Ollama, `ui/server.py` impose :

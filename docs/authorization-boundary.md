@@ -2,7 +2,7 @@
 
 ## État actuel
 
-Le laboratoire est local et propose trois identités fictives. Il émet un jeton
+Le laboratoire est local et propose quatre identités fictives. Il émet un jeton
 signé de courte durée, le vérifie côté serveur et transforme ses groupes en
 rôles avant d'évaluer les ACL de quinze documents fictifs. Le navigateur ne
 fournit pas d'identité à la route de chat.

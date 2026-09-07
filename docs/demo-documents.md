@@ -40,8 +40,8 @@ donc pas silencieusement accessible parce qu'il a été déposé dans un dossier
 
 ## Étape suivante, non implémentée
 
-La prochaine couche sera un lecteur documentaire contrôlé : il recevra un
-identifiant de ressource déjà autorisé, lira uniquement le chemin déclaré dans
-la politique, puis produira éventuellement des passages pour la récupération
-RAG. Il devra refuser un chemin absent, inconnu, hors de `demo-documents/` ou
-non autorisé avant toute lecture et avant tout appel à Ollama.
+Le lecteur documentaire contrôlé est désormais en place. La prochaine couche
+sera la récupération RAG filtrée : elle devra interroger uniquement les
+ressources autorisées, produire des passages bornés et garantir qu'aucun passage
+interdit n'est envoyé à Ollama. Le lecteur continuera de refuser un chemin
+absent, inconnu, hors de `demo-documents/` ou non autorisé avant toute lecture.

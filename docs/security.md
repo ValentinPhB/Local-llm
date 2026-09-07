@@ -37,8 +37,9 @@ techniques la démontrent.
 - RBAC et ACL décident de l'accès avant l'envoi de passages au modèle.
 - Le modèle ne décide jamais si un document est accessible.
 - Une instruction contenue dans un prompt ou un document ne change jamais les permissions.
-- Avant d'ajouter le RAG, les tests devront démontrer qu'une source non
-  autorisée n'est ni lue, ni récupérée, ni transmise dans le contexte du modèle.
+- Les tests du lecteur démontrent déjà qu'une source refusée n'est pas lue.
+  Avant d'ajouter le RAG, ils devront aussi démontrer qu'elle n'est ni
+  récupérée ni transmise dans le contexte du modèle.
 - Le lecteur documentaire n'accepte aucun chemin client : il résout uniquement
   le chemin déclaré dans la politique, confiné à `demo-documents/`, après ACL.
 - Les traces de raisonnement éventuelles sont traitées comme des données potentiellement sensibles : elles ne doivent pas être affichées ou journalisées par défaut.

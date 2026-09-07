@@ -21,7 +21,7 @@ reproductible. Il n'autorise aucun déploiement réseau ou cloud.
 
 | Brique | Code ou artefact | Tests unitaires | Tests d'intégration | Contrôles sécurité |
 | --- | --- | --- | --- | --- |
-| Interface/API locale | `ui/server.py`, `ui/index.html` | Validation de message, filtre `</think>`, erreurs HTTP | Serveur démarré, session refusée/acceptée, `/api/chat` avec Ollama simulé | écoute loopback, pas de logs de prompts, analyse Python |
+| Interface/API locale | `ui/server.py`, `ui/index.html` | Validation de message, filtre `</think>`, erreurs HTTP | Serveur démarré, session refusée/acceptée, document autorisé/refusé, `/api/chat` avec Ollama simulé | écoute loopback, pas de logs de prompts, analyse Python |
 | Simulation SSO | `identity/demo_sso.py`, `directory.json` | signature, expiration, issuer, audience et groupes | cookie falsifié refusé par l'API | aucune clé persistante, cookie HttpOnly, identité libre interdite sur chat |
 | Politique d'accès | `demo-policy.json` | groupes -> rôles et décision RBAC/ACL | API + moteur de politique, avant tout contexte LLM | refus par défaut, absence de contournement par prompt |
 | Documents fictifs | `demo-documents/` et chemins de politique | présence, nombre, classification et métadonnées | lecteur contrôlé après ACL, avant RAG | aucun document réel, chemin déclaré obligatoire, refus avant lecture |
@@ -43,7 +43,7 @@ Chaque branche de travail et chaque pull request vers `main` devra déclencher :
 2. Tests unitaires
    -> moteur RBAC/ACL : matrice complète autorisation/refus et groupes -> rôles
    -> SSO fictif : signature, expiration et falsification de jeton
-   -> API : validations, session obligatoire, erreurs et filtre de raisonnement
+   -> API : validations, session obligatoire, erreurs, lecteur après ACL et filtre de raisonnement
 
 3. Tests d'intégration isolés
    -> serveur Python démarré temporairement sur loopback
@@ -216,7 +216,8 @@ données ou modèles créés pendant la release.
 
 ## Plan d'implémentation CI/CD
 
-1. Ajouter des tests Python déterministes pour le moteur RBAC/ACL.
+1. **Fait :** tests Python déterministes pour RBAC/ACL, SSO, documents et
+   lecteur contrôlé.
 2. Extraire l'appel Ollama derrière une interface testable et créer un faux
    serveur Ollama pour les tests d'intégration.
 3. Ajouter un workflow GitHub Actions : validation, tests et détection de

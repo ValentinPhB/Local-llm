@@ -64,6 +64,6 @@ simulation SSO est dans [`demo-sso.md`](demo-sso.md).
 - L'interface transmet uniquement vers `http://127.0.0.1:11434` et ne configure aucun fournisseur cloud.
 - Le LLM ne recevra aucun montage direct du filesystem du Mac.
 - Quinze documents de démonstration fictifs sont versionnés dans le dépôt,
-  classifiés et référencés par une ACL ; ils ne sont pas encore lus, indexés ou
-  transmis au modèle.
+  classifiés et référencés par une ACL ; ils sont lus seulement après ACL, ne
+  sont pas indexés et ne sont jamais transmis au modèle.
 - Aucun MCP, outil externe ou credential n'est prévu à ce stade.
