@@ -11,10 +11,10 @@ Le choix approuvé est `embeddinggemma` dans Ollama et Qdrant comme base
 vectorielle locale. `embeddinggemma` est installé localement et son endpoint
 Ollama a produit un vecteur de contrôle pour une phrase fictive. Qdrant est
 démarré mais reste vide. Les adaptateurs `semantic_retrieval/clients.py` et
-l'indexeur contrôlé `semantic_retrieval/indexer.py` existent et sont testés avec
-des services simulés ; aucune route API ne les appelle encore. Aucun document
-n'est indexé. La récupération lexicale et le chat RAG existants restent donc la
-référence active.
+l'indexeur contrôlé `semantic_retrieval/indexer.py` et le writer Qdrant existent
+et sont testés avec des services simulés ; aucune route API ne les appelle
+encore. Aucun document n'est indexé. La récupération lexicale et le chat RAG
+existants restent donc la référence active.
 
 ## Composants retenus
 
@@ -74,6 +74,15 @@ déclenchée par ce code. L'ACL de chaque utilisateur est toujours appliquée pl
 tard, lors de la requête de recherche ; l'indexation est un travail
 administratif local sur les documents explicitement déclarés.
 
+Le writer `QdrantIndexWriter` cible exclusivement la collection fixe
+`lab_semantic_documents` sur `127.0.0.1:6333`. Il valide le lot avant tout
+appel, rejette les classifications, dimensions et chunks invalides, puis
+reconstruit cette seule collection avec des identifiants de points déterministes.
+Cette reconstruction est par nature destructive pour **cette collection de
+démonstration** ; elle ne sera jamais appelée par une route utilisateur. Pour
+l'instant, elle est testée avec un faux Qdrant et aucun code ne l'instancie pour
+écrire dans le conteneur réel.
+
 ## Données indexées et rétention
 
 Chaque point Qdrant contiendra uniquement : `resource_id`, `classification`,
@@ -103,8 +112,9 @@ rétrieval sémantique par le RAG. Elle mettra alors à jour le flux de requête
 `127.0.0.1:11434/api/embed` pour Ollama et `127.0.0.1:6333` pour Qdrant. Il
 valide les vecteurs, interdit une liste ACL vide de devenir une recherche globale
 et rejette une ressource renvoyée par Qdrant qui ne figure pas dans le filtre
-autorisé. Il ne contient aucune opération d'écriture Qdrant et n'est pas encore
-importé par `ui/server.py`.
+autorisé. `QdrantIndexWriter` ajoute l'écriture administrative isolée : son nom
+de collection est imposé, l'URL reste loopback et il n'est pas importé par
+`ui/server.py`.
 
 ## Contrôles automatisés obligatoires
 

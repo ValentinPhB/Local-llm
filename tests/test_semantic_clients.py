@@ -1,12 +1,15 @@
 import json
 import unittest
+from urllib.error import HTTPError
 from unittest.mock import patch
 
 from semantic_retrieval.clients import (
     OllamaEmbeddingProvider,
+    QdrantIndexWriter,
     QdrantVectorStore,
     SemanticClientError,
 )
+from semantic_retrieval.indexer import IndexedPassage
 
 
 class FakeResponse:
@@ -106,6 +109,66 @@ class SemanticClientTests(unittest.TestCase):
         with patch("semantic_retrieval.clients.urlopen", return_value=FakeResponse(response)):
             with self.assertRaises(SemanticClientError):
                 QdrantVectorStore().search([0.1, 0.2], ["public-welcome"])
+
+    def test_writer_rebuilds_only_the_fixed_collection_with_deterministic_points(self):
+        captured = []
+
+        def fake_urlopen(request, timeout):
+            captured.append((request.method, request.full_url, request.data))
+            return FakeResponse({"status": "ok", "result": True})
+
+        passages = (
+            IndexedPassage("public-welcome", "PUBLIC", 0, "Bienvenue.", (0.2, -0.1)),
+            IndexedPassage("public-welcome", "PUBLIC", 1, "Règles locales.", (0.4, 0.8)),
+        )
+        with patch("semantic_retrieval.clients.urlopen", side_effect=fake_urlopen):
+            QdrantIndexWriter().replace(passages)
+
+        self.assertEqual(
+            [(method, url) for method, url, _ in captured],
+            [
+                ("DELETE", "http://127.0.0.1:6333/collections/lab_semantic_documents"),
+                ("PUT", "http://127.0.0.1:6333/collections/lab_semantic_documents"),
+                ("PUT", "http://127.0.0.1:6333/collections/lab_semantic_documents/points?wait=true"),
+            ],
+        )
+        collection_body = json.loads(captured[1][2])
+        point_body = json.loads(captured[2][2])
+        self.assertEqual(collection_body, {"vectors": {"size": 2, "distance": "Cosine"}})
+        self.assertEqual(point_body["points"][0]["payload"]["resource_id"], "public-welcome")
+        self.assertEqual(point_body["points"][0]["payload"]["classification"], "PUBLIC")
+        self.assertNotEqual(point_body["points"][0]["id"], point_body["points"][1]["id"])
+
+    def test_writer_refuses_invalid_batch_before_any_qdrant_request(self):
+        invalid = IndexedPassage("rh-onboarding", "SECRET", 0, "Interdit.", (0.1, 0.2))
+        with patch("semantic_retrieval.clients.urlopen") as service:
+            with self.assertRaises(SemanticClientError):
+                QdrantIndexWriter().replace((invalid,))
+
+        service.assert_not_called()
+
+    def test_writer_cannot_target_another_collection(self):
+        with self.assertRaises(SemanticClientError):
+            QdrantIndexWriter(collection="other_collection")
+
+    def test_writer_accepts_missing_collection_only_for_its_initial_delete(self):
+        responses = iter(
+            [
+                HTTPError("http://127.0.0.1:6333/collections/lab_semantic_documents", 404, "", None, None),
+                FakeResponse({"status": "ok", "result": True}),
+                FakeResponse({"status": "ok", "result": True}),
+            ]
+        )
+
+        def fake_urlopen(request, timeout):
+            response = next(responses)
+            if isinstance(response, HTTPError):
+                raise response
+            return response
+
+        passage = IndexedPassage("public-welcome", "PUBLIC", 0, "Bienvenue.", (0.2, -0.1))
+        with patch("semantic_retrieval.clients.urlopen", side_effect=fake_urlopen):
+            QdrantIndexWriter().replace((passage,))
 
 
 if __name__ == "__main__":

@@ -11,10 +11,13 @@ from dataclasses import dataclass
 import json
 import math
 import re
-from typing import Any, Sequence
+from typing import Any, Mapping, Sequence
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
+from uuid import UUID, uuid5
+
+from semantic_retrieval.indexer import IndexedPassage, MAX_CHUNK_CHARS
 
 
 OLLAMA_EMBED_URL = "http://127.0.0.1:11434/api/embed"
@@ -22,7 +25,11 @@ QDRANT_URL = "http://127.0.0.1:6333"
 QDRANT_COLLECTION = "lab_semantic_documents"
 MAX_RESULTS = 3
 MAX_EXCERPT_CHARS = 500
+MAX_INDEXED_PASSAGES = 512
+MAX_VECTOR_DIMENSIONS = 4_096
 RESOURCE_ID = re.compile(r"[a-z0-9-]{1,80}")
+_POINT_NAMESPACE = UUID("c77c3fc0-baa8-4b0d-9d7d-9f30e4fcad2d")
+_CLASSIFICATIONS = frozenset({"PUBLIC", "RH", "IT"})
 
 
 class SemanticClientError(ValueError):
@@ -181,3 +188,108 @@ class QdrantVectorStore:
         ):
             raise SemanticClientError("Qdrant response is invalid")
         return SemanticMatch(resource_id, classification, text[:MAX_EXCERPT_CHARS], float(score))
+
+
+class QdrantIndexWriter:
+    """Writer du seul index de démonstration Qdrant, jamais appelé par l'API.
+
+    ``replace`` efface puis recrée uniquement la collection fixe du laboratoire
+    avant d'y insérer le lot validé. Cette opération est volontairement isolée :
+    elle sera branchée plus tard à une commande administrative dédiée, jamais au
+    navigateur ou à une route de requête utilisateur.
+    """
+
+    def __init__(
+        self,
+        base_url: str = QDRANT_URL,
+        collection: str = QDRANT_COLLECTION,
+    ) -> None:
+        if collection != QDRANT_COLLECTION:
+            raise SemanticClientError("Qdrant writer collection is fixed")
+        self.base_url = _require_loopback_url(base_url, expected_port=6333)
+        self.collection = collection
+
+    def replace(self, passages: Sequence[IndexedPassage]) -> None:
+        """Reconstruit l'index de démonstration avec un lot homogène et borné."""
+
+        if (
+            not isinstance(passages, Sequence)
+            or isinstance(passages, (str, bytes))
+            or not 1 <= len(passages) <= MAX_INDEXED_PASSAGES
+        ):
+            raise SemanticClientError("indexed passage batch is invalid")
+
+        points: list[dict[str, object]] = []
+        seen_chunks: set[tuple[str, int]] = set()
+        dimensions: int | None = None
+        for passage in passages:
+            if not isinstance(passage, IndexedPassage):
+                raise SemanticClientError("indexed passage batch is invalid")
+            if (
+                not RESOURCE_ID.fullmatch(passage.resource_id)
+                or passage.classification not in _CLASSIFICATIONS
+                or not isinstance(passage.chunk_id, int)
+                or passage.chunk_id < 0
+                or not isinstance(passage.text, str)
+                or not passage.text.strip()
+                or len(passage.text) > MAX_CHUNK_CHARS
+            ):
+                raise SemanticClientError("indexed passage batch is invalid")
+            chunk_key = (passage.resource_id, passage.chunk_id)
+            if chunk_key in seen_chunks:
+                raise SemanticClientError("indexed passage batch is invalid")
+            seen_chunks.add(chunk_key)
+            vector = _vector(list(passage.vector))
+            if len(vector) > MAX_VECTOR_DIMENSIONS:
+                raise SemanticClientError("embedding dimensions are invalid")
+            if dimensions is None:
+                dimensions = len(vector)
+            elif len(vector) != dimensions:
+                raise SemanticClientError("embedding dimensions are inconsistent")
+            point_id = str(uuid5(_POINT_NAMESPACE, f"{passage.resource_id}:{passage.chunk_id}:{passage.text}"))
+            points.append(
+                {
+                    "id": point_id,
+                    "vector": vector,
+                    "payload": {
+                        "resource_id": passage.resource_id,
+                        "classification": passage.classification,
+                        "chunk_id": passage.chunk_id,
+                        "text": passage.text,
+                    },
+                }
+            )
+
+        # Le nom de collection est fixe : aucune autre collection ne peut être touchée.
+        self._request("DELETE", "", allow_not_found=True)
+        self._request(
+            "PUT",
+            "",
+            {"vectors": {"size": dimensions, "distance": "Cosine"}},
+        )
+        self._request("PUT", "/points?wait=true", {"points": points})
+
+    def _request(
+        self,
+        method: str,
+        suffix: str,
+        body: Mapping[str, object] | None = None,
+        allow_not_found: bool = False,
+    ) -> None:
+        request = Request(
+            f"{self.base_url}/collections/{quote(self.collection, safe='')}{suffix}",
+            data=json.dumps(body).encode("utf-8") if body is not None else None,
+            headers={"Content-Type": "application/json"} if body is not None else {},
+            method=method,
+        )
+        try:
+            with urlopen(request, timeout=5) as response:  # noqa: S310 -- fixed loopback URL
+                payload = json.loads(response.read())
+        except HTTPError as error:
+            if allow_not_found and error.code == 404:
+                return
+            raise SemanticServiceUnavailable("local vector store is unavailable") from error
+        except (URLError, TimeoutError, json.JSONDecodeError) as error:
+            raise SemanticServiceUnavailable("local vector store is unavailable") from error
+        if not isinstance(payload, dict) or payload.get("status") != "ok":
+            raise SemanticClientError("Qdrant write response is invalid")

@@ -116,6 +116,7 @@ Pour chaque étape, documenter :
   Le conteneur ne redémarre pas automatiquement.
 - **Réseau :** seul `127.0.0.1:6333` est publié ; aucune exposition LAN ou
   Internet. La santé locale `/healthz` a répondu `healthz check passed`.
-- **État applicatif :** les clients sémantiques et l'indexeur contrôlé Python
-  sont testés avec des services simulés. Aucun writer Qdrant réel ni route API
-  ne les appelle ; la collection reste vide.
+- **État applicatif :** les clients sémantiques, l'indexeur contrôlé et le
+  writer Qdrant Python sont testés avec des services simulés. Aucune route API
+  ne les appelle et le writer n'est pas instancié contre Qdrant réel ; la
+  collection reste vide.

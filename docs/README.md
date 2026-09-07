@@ -14,7 +14,7 @@ référence ; les documents « futur » décrivent une étape non activée.
 | [demo-document-catalog.md](demo-document-catalog.md) | Les 15 documents fictifs et leurs classifications. |
 | [lexical-rag-retrieval.md](lexical-rag-retrieval.md) | Recherche lexicale active, filtrée par ACL. |
 | [rag-generation-flow.md](rag-generation-flow.md) | Chat RAG actif et contexte construit côté serveur. |
-| [semantic-rag-design.md](semantic-rag-design.md) | Couche vectorielle préparée, non encore activée. |
+| [semantic-rag-design.md](semantic-rag-design.md) | Couche vectorielle préparée et testée avec faux services, non encore activée. |
 | [authorization-security-boundary.md](authorization-security-boundary.md) | Règles d'autorisation actuelles et futures. |
 | [security-requirements.md](security-requirements.md) | Exigences réseau, données, audit et privilèges. |
 | [security-test-strategy.md](security-test-strategy.md) | Scénarios et preuves de sécurité automatisées. |

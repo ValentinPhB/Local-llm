@@ -30,7 +30,7 @@ d'images et le SBOM sont des extensions prévues, pas des contrôles actifs.
 | Récupération lexicale et RAG | `document_store/retriever.py`, `ui/server.py` | classement lexical, bornage, contexte serveur | ACL avant lecture, extraits autorisés seulement, faux Ollama | pas d'index vectoriel persistant, pas de contenu dans les journaux |
 | Ollama | application macOS | hors CI : logiciel tiers | API locale, version, écoute `127.0.0.1` | signature/notarisation, veille CVE avant mise à jour |
 | Modèle | manifeste et blobs Ollama | hors CI : artefact tiers | requête non sensible, mémoire et temps de réponse | licence, origine, identifiant de contenu, comportement `think` |
-| RAG sémantique en préparation | `semantic_retrieval/` | clients loopback, filtre Qdrant, chunking et indexeur injecté | faux embeddings et faux writer ; Qdrant vide | aucune écriture réelle ni route API avant tests d'intégration |
+| RAG sémantique en préparation | `semantic_retrieval/` | clients loopback, filtre Qdrant, chunking, indexeur et writer fixe | faux embeddings et faux Qdrant ; Qdrant réel vide | aucune écriture réelle ni route API avant tests d'intégration |
 | MCP futur | passerelle et connecteurs | validation des permissions et paramètres | action autorisée/refusée avec faux service | secrets dédiés, moindre privilège, audit, scan dépendances ; Oscar limité à `read` déclaré |
 
 ## CI actuelle et extensions prévues
@@ -91,7 +91,7 @@ explicite : aucun déploiement automatique n'est actif aujourd'hui.
 | Documents fictifs | fichiers Markdown versionnés avec le code ; aucun téléchargement ou index local | test 9/3/3, métadonnées et chemins référencés par la politique |
 | Ollama | application macOS téléchargée depuis la release officielle, montée en lecture seule, signature et notarisation vérifiées, puis copiée dans `/Applications` | `ollama --version`, `/api/version` et écoute `127.0.0.1:11434` |
 | Modèle | téléchargement explicite par `ollama pull <nom:tag>` ; les blobs restent dans le stockage Ollama local | `ollama list`, `ollama show`, identifiant de contenu, espace disque et test non sensible |
-| RAG sémantique | Qdrant local au digest verrouillé ; clients et indexeur Python déjà versionnés, writer réel encore absent | tests ACL avant indexation et avant récupération ; aucune donnée réelle |
+| RAG sémantique | Qdrant local au digest verrouillé ; clients, indexeur et writer Python versionnés, mais non appelés | tests ACL avant indexation et avant récupération ; aucune donnée réelle |
 | MCP futur | connecteur approuvé, version/digest verrouillé, credential dédié injecté hors de Git | tests autorisation/refus et journal d'audit |
 
 ### Séquence de déploiement local actuelle

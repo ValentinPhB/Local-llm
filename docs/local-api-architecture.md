@@ -28,7 +28,7 @@ Ollama est démarrée ; l’API Python existe seulement pendant l’exécution d
 | `access_control/engine.py` | Traduction groupes -> rôles et décision RBAC/ACL déterministe. |
 | `document_store/reader.py` | Lecture confinée au chemin déclaré, après autorisation. |
 | `document_store/retriever.py` | Classement lexical des seuls documents déjà autorisés. |
-| `semantic_retrieval/clients.py` | Adaptateurs Ollama embeddings et Qdrant, testés mais non raccordés à l'API. |
+| `semantic_retrieval/clients.py` | Adaptateurs Ollama embeddings, recherche Qdrant et writer Qdrant fixe, testés mais non raccordés à l'API. |
 | `semantic_retrieval/indexer.py` | Indexeur contrôlé : relit les seuls documents de politique, découpe et remet un lot à un writer injecté. |
 | `audit/security_log.py` | Événements d'audit minimaux et stockage local borné pour ACL, lecture, récupération, chat et RAG. |
 | `config/demo-idp/directory.json` | Quatre identités et leurs groupes fictifs. |
@@ -79,8 +79,8 @@ ni les modèles, ni la configuration d’Ollama.
   est démarré mais sa collection est vide et l'API ne s'y connecte pas encore.
   Le modèle local `embeddinggemma` est installé dans Ollama mais n'est pas
   encore consommé par ce processus. Les adaptateurs sémantiques et l'indexeur
-  contrôlé sont isolés, n'ont pas de route HTTP et l'indexeur ne fait encore
-  aucune écriture Qdrant réelle. Aucun MCP n'existe.
+  contrôlé sont isolés, n'ont pas de route HTTP et aucun d'eux n'est encore
+  instancié pour écrire dans Qdrant réel. Aucun MCP n'existe.
 
 ## Contrôles de frontière
 
