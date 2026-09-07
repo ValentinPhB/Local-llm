@@ -28,7 +28,7 @@ Ollama est démarrée ; l’API Python existe seulement pendant l’exécution d
 | `access_control/engine.py` | Traduction groupes -> rôles et décision RBAC/ACL déterministe. |
 | `document_store/reader.py` | Lecture confinée au chemin déclaré, après autorisation. |
 | `document_store/retriever.py` | Classement lexical des seuls documents déjà autorisés. |
-| `audit/security_log.py` | Contrat d'événements d'audit minimaux ; pas encore raccordé aux routes. |
+| `audit/security_log.py` | Contrat d'événements d'audit minimaux et stockage local borné ; pas encore raccordé aux routes. |
 | `config/demo-idp/directory.json` | Quatre identités et leurs groupes fictifs. |
 | `config/access-control/demo-policy.json` | Groupes, rôles, ACL et chemins des 15 documents. |
 
@@ -67,8 +67,10 @@ ni les modèles, ni la configuration d’Ollama.
 - La clé JWT est créée aléatoirement au démarrage et reste seulement en mémoire.
 - Les sessions expirent après 15 minutes et un redémarrage les invalide.
 - Les prompts et réponses ne sont pas journalisés par le serveur.
-- Le format d'un futur journal de décision est défini et testé, mais aucune
-  route ne l'alimente encore ; aucun fichier de journal n'est créé à ce stade.
+- Le format et le stockage d'un futur journal de décision sont définis et
+  testés : `.local/audit/access-decisions.jsonl`, hors Git, est limité à 1 Mo
+  avec une sauvegarde et des permissions privées. Aucune route ne l'alimente
+  encore ; aucun fichier de journal n'est créé à ce stade.
 - Les documents sont des fichiers Markdown fictifs versionnés dans Git.
 - Aucun index persistant, embedding, base vectorielle, conversation ou MCP n’existe.
 

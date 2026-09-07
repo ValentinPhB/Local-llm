@@ -66,6 +66,10 @@ techniques la démontrent.
   décision d'accès : horodatage UTC, route, résultat, identité fictive et
   identifiant de ressource lorsqu'ils sont disponibles. Il n'accepte aucun
   prompt, réponse, cookie, JWT ou contenu documentaire.
+- Sa destination locale prévue est `.local/audit/access-decisions.jsonl`, hors
+  de Git, avec permissions de fichier `600`, répertoire `700`, plafond de 1 Mo
+  et un seul fichier de sauvegarde après rotation. La taille maximale est donc
+  d'environ 2 Mo.
 - Ce composant est testé mais n'est pas encore raccordé aux routes de l'API :
   aucun journal d'accès n'est donc produit par le serveur à ce stade.
 - Les journaux seront examinés sans y inscrire de données ou secrets réels.

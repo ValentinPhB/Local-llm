@@ -11,5 +11,6 @@ secrets/
 
 # Local runtime artifacts and editor/OS metadata.
 *.log
+.local/
 tmp/
 .DS_Store

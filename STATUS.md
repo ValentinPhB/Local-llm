@@ -44,11 +44,12 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
   est un contrat pour les futurs MCP approuvés : actions `read` explicitement
   enregistrées seulement ; toute autre action est refusée. Aucun MCP n'est
   installé à ce stade.
-- Tests validés : `python3 -m unittest discover -s tests -v` — 38 tests,
+- Tests validés : `python3 -m unittest discover -s tests -v` — 41 tests,
   incluant jeton falsifié/expiré, chat sans session et ACL Alice/RH/IT.
-- Le contrat de journalisation de sécurité est défini et couvert par trois
-  tests : il limite les événements à des métadonnées de décision, mais n'est
-  pas encore raccordé à l'API ni à un fichier local.
+- Le contrat de journalisation de sécurité et son stockage local sont définis
+  et couverts par six tests : `.local/audit/access-decisions.jsonl` est hors
+  Git, privé, plafonné à 1 Mo avec une sauvegarde. Il n'est pas encore raccordé
+  à l'API, donc aucun fichier n'est créé par le serveur.
 
 ## À connaître au redémarrage
 
