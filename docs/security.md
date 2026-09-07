@@ -77,5 +77,8 @@ techniques la démontrent.
   ne pas exposer de document, décision ACL ou résultat de recherche sans trace.
 - Le chat simple `POST /api/chat` journalise aussi la décision d'appeler Ollama,
   sans jamais journaliser son message ou la réponse. Si le journal échoue, le
-  message n'est pas envoyé à Ollama. Le RAG n'est pas encore journalisé.
+  message n'est pas envoyé à Ollama.
+- Le chat RAG `POST /api/rag-chat` est journalisé avant toute récupération ou
+  appel à Ollama, sans question, source, extrait ou réponse. Si le journal
+  échoue, aucun document n'est lu et Ollama n'est pas contacté.
 - Les journaux seront examinés sans y inscrire de données ou secrets réels.

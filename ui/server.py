@@ -62,6 +62,7 @@ DOCUMENT_AUDIT_ROUTE = "/api/documents/:resource_id"
 ACCESS_CHECK_AUDIT_ROUTE = "/api/access-check"
 RETRIEVAL_AUDIT_ROUTE = "/api/retrieve"
 CHAT_AUDIT_ROUTE = "/api/chat"
+RAG_CHAT_AUDIT_ROUTE = "/api/rag-chat"
 
 
 class ApplicationState:
@@ -342,31 +343,27 @@ class LocalUIHandler(BaseHTTPRequestHandler):
             self.send_error(HTTPStatus.NOT_FOUND)
             return
 
-        audit_route = CHAT_AUDIT_ROUTE if request.path == "/api/chat" else None
+        audit_route = CHAT_AUDIT_ROUTE if request.path == "/api/chat" else RAG_CHAT_AUDIT_ROUTE
         # Le navigateur ne fournit jamais d'identité dans la requête de chat.
-        # La session signée est vérifiée avant tout appel à Ollama. Le RAG sera
-        # raccordé à l'audit dans une étape séparée.
+        # La session signée est vérifiée avant toute lecture ou appel à Ollama.
         session = self._session()
         if session is None:
-            if audit_route:
-                self._record_access_decision(audit_route, "denied")
+            self._record_access_decision(audit_route, "denied")
             self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Session de démonstration requise."})
             return
         body = self._read_json(MAX_MESSAGE_CHARS * 2)
         raw_message = body.get("message") if body else None
         if not isinstance(raw_message, str):
-            if audit_route:
-                self._record_access_decision(audit_route, "denied", session)
+            self._record_access_decision(audit_route, "denied", session)
             self.send_json(HTTPStatus.BAD_REQUEST, {"error": "Message invalide."})
             return
         message = raw_message.strip()
         if not message or len(message) > MAX_MESSAGE_CHARS:
-            if audit_route:
-                self._record_access_decision(audit_route, "denied", session)
+            self._record_access_decision(audit_route, "denied", session)
             self.send_json(HTTPStatus.BAD_REQUEST, {"error": "Message invalide."})
             return
 
-        if audit_route and not self._record_access_decision(audit_route, "allowed", session):
+        if not self._record_access_decision(audit_route, "allowed", session):
             self.send_json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Journal de sécurité indisponible."})
             return
 

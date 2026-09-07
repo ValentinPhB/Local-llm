@@ -44,15 +44,15 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
   est un contrat pour les futurs MCP approuvés : actions `read` explicitement
   enregistrées seulement ; toute autre action est refusée. Aucun MCP n'est
   installé à ce stade.
-- Tests validés : `python3 -m unittest discover -s tests -v` — 48 tests,
+- Tests validés : `python3 -m unittest discover -s tests -v` — 50 tests,
   incluant jeton falsifié/expiré, chat sans session et ACL Alice/RH/IT.
-- La lecture directe, la vérification ACL, la recherche et le chat simple
-  écrivent désormais dans `.local/audit/access-decisions.jsonl` une décision
-  minimale autorisée ou refusée. La recherche ne conserve ni requête ni
-  extrait ; le chat ne conserve ni message ni réponse. Le fichier est hors Git,
-  privé, plafonné à 1 Mo avec une sauvegarde. Si le journal est indisponible,
-  l'opération est refusée avant toute lecture ou appel Ollama. Le RAG n'est pas
-  encore journalisé.
+- La lecture directe, la vérification ACL, la recherche, le chat simple et le
+  RAG écrivent désormais dans `.local/audit/access-decisions.jsonl` une
+  décision minimale autorisée ou refusée. La recherche ne conserve ni requête
+  ni extrait ; le chat et le RAG ne conservent ni message, ni source, ni réponse.
+  Le fichier est hors Git, privé, plafonné à 1 Mo avec une sauvegarde. Si le
+  journal est indisponible, l'opération est refusée avant toute lecture ou appel
+  Ollama.
 
 ## À connaître au redémarrage
 
@@ -90,7 +90,7 @@ Les références à maintenir à chaque évolution sont
 
 ## Prochaine étape à décider
 
-Le socle de validation automatisée est actif : 48 tests Python, JSON, liens
+Le socle de validation automatisée est actif : 50 tests Python, JSON, liens
 Markdown et Gitleaks à chaque push ou pull request. Choisir la prochaine brique
 du laboratoire avant toute évolution : journalisation de sécurité minimale,
 amélioration du RAG, ou préparation contrôlée d'un futur MCP. Ne pas ajouter de

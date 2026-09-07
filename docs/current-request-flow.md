@@ -113,11 +113,14 @@ Route : `POST /api/rag-chat` avec `{"message":"…"}`.
 
 ```text
 1. API vérifie la session et recalcule les droits ACL.
-2. API récupère au plus trois extraits parmi les seules ressources autorisées.
-3. API construit un message système avec ces extraits.
-4. API ajoute le message utilisateur.
-5. API appelle Ollama avec ce contexte construit côté serveur.
-6. API retourne la réponse et les identifiants des sources utilisées.
+2. API journalise l'autorisation d'exécuter le RAG, sans question, source,
+   extrait ni réponse. Si le journal est indisponible : 503 ; aucun fichier
+   n'est lu et Ollama n'est pas appelé.
+3. API récupère au plus trois extraits parmi les seules ressources autorisées.
+4. API construit un message système avec ces extraits.
+5. API ajoute le message utilisateur.
+6. API appelle Ollama avec ce contexte construit côté serveur.
+7. API retourne la réponse et les identifiants des sources utilisées.
 ```
 
 Le navigateur ne peut pas fournir `context`, `sources`, chemin, rôle ou liste

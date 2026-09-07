@@ -10,6 +10,7 @@ from ui.server import (
     ACCESS_CHECK_AUDIT_ROUTE,
     CHAT_AUDIT_ROUTE,
     DOCUMENT_AUDIT_ROUTE,
+    RAG_CHAT_AUDIT_ROUTE,
     RETRIEVAL_AUDIT_ROUTE,
     SESSION_COOKIE_NAME,
     create_server,
@@ -331,6 +332,50 @@ class LocalAPITests(unittest.TestCase):
         self.assertIn("public-welcome", sent)
         self.assertNotIn("RH interdit", sent)
         self.assertNotIn("rh-onboarding", sent)
+        event = json.loads(self.audit_output.getvalue().splitlines()[-1])
+        self.assertEqual(event["route"], RAG_CHAT_AUDIT_ROUTE)
+        self.assertEqual(event["outcome"], "allowed")
+        self.assertEqual(event["identity_id"], "oscar")
+        self.assertIsNone(event["resource_id"])
+        serialized_event = json.dumps(event, ensure_ascii=False)
+        self.assertNotIn("organisation", serialized_event)
+        self.assertNotIn("public-welcome", serialized_event)
+        self.assertNotIn("RH interdit", serialized_event)
+
+    def test_rag_chat_without_session_is_audited_as_anonymous_denial(self):
+        status, payload, _ = self.request(
+            "POST",
+            "/api/rag-chat",
+            json.dumps({"message": "question confidentielle"}),
+            {"Content-Type": "application/json"},
+        )
+
+        self.assertEqual(status, 401)
+        self.assertIn("Session", payload["error"])
+        event = json.loads(self.audit_output.getvalue().splitlines()[-1])
+        self.assertEqual(event["route"], RAG_CHAT_AUDIT_ROUTE)
+        self.assertEqual(event["outcome"], "denied")
+        self.assertIsNone(event["identity_id"])
+        self.assertNotIn("question confidentielle", json.dumps(event, ensure_ascii=False))
+
+    def test_rag_chat_does_not_read_or_call_ollama_when_audit_storage_is_unavailable(self):
+        headers = self.start_demo_session("oscar")
+        with patch.object(
+            self.audit_log,
+            "record_access_decision",
+            side_effect=AuditStorageError("unavailable"),
+        ), patch("ui.server.retrieve_documents") as retriever, patch("ui.server.urlopen") as ollama:
+            status, payload, _ = self.request(
+                "POST",
+                "/api/rag-chat",
+                json.dumps({"message": "organisation Acme-Lab"}),
+                {"Content-Type": "application/json", **headers},
+            )
+
+        self.assertEqual(status, 503)
+        self.assertIn("Journal", payload["error"])
+        retriever.assert_not_called()
+        ollama.assert_not_called()
 
     def test_server_is_bound_to_loopback(self):
         self.assertEqual(self.host, "127.0.0.1")
