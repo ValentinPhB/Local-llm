@@ -29,6 +29,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from access_control.engine import decide_access_for_roles, policy_is_valid, roles_from_groups
+from audit.security_log import AuditStorageError, SecurityAuditLog, local_audit_log
 from document_store.reader import DocumentError, read_policy_document
 from document_store.retriever import retrieve_documents
 from identity.demo_sso import (
@@ -57,16 +58,24 @@ DIRECTORY_PATH = ROOT / "config" / "demo-idp" / "directory.json"
 # qwen3 peut commencer la trace sans émettre la balise ouvrante <think>.
 # Toute réponse qui contient une fermeture </think> est donc tronquée avant elle.
 THINKING_PREFIX = re.compile(r"^.*?</think>\s*", re.DOTALL | re.IGNORECASE)
+DOCUMENT_AUDIT_ROUTE = "/api/documents/:resource_id"
 
 
 class ApplicationState:
     """État immuable du processus, chargé et validé avant l'écoute HTTP."""
 
-    def __init__(self, policy: Mapping[str, Any], directory: DemoDirectory) -> None:
+    def __init__(
+        self,
+        policy: Mapping[str, Any],
+        directory: DemoDirectory,
+        audit_log: SecurityAuditLog | None = None,
+    ) -> None:
         self.policy = policy
         self.directory = directory
         # Clé uniquement en mémoire : redémarrer le serveur ferme toutes les sessions.
         self.signing_key = new_signing_key()
+        # Le fichier ne sera créé que lors du premier événement d'audit.
+        self.audit_log = audit_log or local_audit_log(ROOT)
 
 
 class LocalLabServer(ThreadingHTTPServer):
@@ -151,6 +160,25 @@ class LocalUIHandler(BaseHTTPRequestHandler):
             "Path=/; HttpOnly; SameSite=Strict"
         )
 
+    def _record_document_decision(
+        self,
+        outcome: str,
+        session: VerifiedIdentity | None = None,
+        resource_id: str | None = None,
+    ) -> bool:
+        """Enregistre seulement la décision, jamais le contenu d'une requête."""
+
+        try:
+            self.state.audit_log.record_access_decision(
+                route=DOCUMENT_AUDIT_ROUTE,
+                outcome=outcome,
+                identity_id=session.identity_id if session else None,
+                resource_id=resource_id,
+            )
+        except AuditStorageError:
+            return False
+        return True
+
     def do_GET(self) -> None:  # noqa: N802
         request = urlsplit(self.path)
         if request.path == "/healthz":
@@ -178,11 +206,16 @@ class LocalUIHandler(BaseHTTPRequestHandler):
             self.send_json(status, {"resource_id": resource_ids[0], "allowed": decision.allowed})
             return
         if request.path.startswith("/api/documents/"):
-            session = self._require_session()
+            # Cette route traite elle-même la session afin de tracer aussi un
+            # refus anonyme, sans journaliser le cookie présenté.
+            session = self._session()
             if session is None:
+                self._record_document_decision("denied")
+                self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Session de démonstration requise."})
                 return
             resource_id = request.path.removeprefix("/api/documents/")
             if not RESOURCE_ID.fullmatch(resource_id):
+                self._record_document_decision("denied", session)
                 self.send_json(HTTPStatus.BAD_REQUEST, {"error": "Ressource de démonstration invalide."})
                 return
             roles = roles_from_groups(self.state.policy, session.groups)
@@ -190,7 +223,13 @@ class LocalUIHandler(BaseHTTPRequestHandler):
             if not decision.allowed:
                 # Ne pas lire le document, ni distinguer une ressource inconnue
                 # d'une ressource interdite.
+                self._record_document_decision("denied", session, resource_id)
                 self.send_json(HTTPStatus.FORBIDDEN, {"error": "Accès au document refusé."})
+                return
+            # En cas d'indisponibilité du journal, ne pas exposer un document
+            # autorisé sans trace de décision : la lecture échoue donc fermée.
+            if not self._record_document_decision("allowed", session, resource_id):
+                self.send_json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Journal de sécurité indisponible."})
                 return
             try:
                 document = read_policy_document(self.state.policy, resource_id, ROOT)
@@ -353,7 +392,11 @@ class LocalUIHandler(BaseHTTPRequestHandler):
             )
 
 
-def create_server(host: str = HOST, port: int = PORT) -> LocalLabServer:
+def create_server(
+    host: str = HOST,
+    port: int = PORT,
+    audit_log: SecurityAuditLog | None = None,
+) -> LocalLabServer:
     """Charge les contrats avant écoute : une configuration invalide échoue tôt."""
 
     try:
@@ -364,7 +407,7 @@ def create_server(host: str = HOST, port: int = PORT) -> LocalLabServer:
     except (OSError, ValueError, json.JSONDecodeError, TokenError) as error:
         raise RuntimeError("Configuration locale d'identité ou d'accès invalide.") from error
     server = LocalLabServer((host, port), LocalUIHandler)
-    server.state = ApplicationState(policy, directory)
+    server.state = ApplicationState(policy, directory, audit_log=audit_log)
     return server
 
 

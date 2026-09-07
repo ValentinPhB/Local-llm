@@ -44,12 +44,14 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
   est un contrat pour les futurs MCP approuvés : actions `read` explicitement
   enregistrées seulement ; toute autre action est refusée. Aucun MCP n'est
   installé à ce stade.
-- Tests validés : `python3 -m unittest discover -s tests -v` — 41 tests,
+- Tests validés : `python3 -m unittest discover -s tests -v` — 43 tests,
   incluant jeton falsifié/expiré, chat sans session et ACL Alice/RH/IT.
-- Le contrat de journalisation de sécurité et son stockage local sont définis
-  et couverts par six tests : `.local/audit/access-decisions.jsonl` est hors
-  Git, privé, plafonné à 1 Mo avec une sauvegarde. Il n'est pas encore raccordé
-  à l'API, donc aucun fichier n'est créé par le serveur.
+- La route de lecture directe de document écrit désormais dans
+  `.local/audit/access-decisions.jsonl` une décision minimale autorisée ou
+  refusée. Le fichier est hors Git, privé, plafonné à 1 Mo avec une sauvegarde.
+  Si ce journal est indisponible, une lecture autorisée est refusée avant toute
+  ouverture de fichier. Le chat, le RAG, la recherche et la vérification ACL
+  ne sont pas encore journalisés.
 
 ## À connaître au redémarrage
 
@@ -87,7 +89,7 @@ Les références à maintenir à chaque évolution sont
 
 ## Prochaine étape à décider
 
-Le socle de validation automatisée est actif : 38 tests Python, JSON, liens
+Le socle de validation automatisée est actif : 43 tests Python, JSON, liens
 Markdown et Gitleaks à chaque push ou pull request. Choisir la prochaine brique
 du laboratoire avant toute évolution : journalisation de sécurité minimale,
 amélioration du RAG, ou préparation contrôlée d'un futur MCP. Ne pas ajouter de

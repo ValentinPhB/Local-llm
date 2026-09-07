@@ -52,13 +52,21 @@ Route : `GET /api/documents/<resource_id>`.
 
 ```text
 1. API vérifie la session et l’ACL du resource_id.
-2. Si refus : 403 ; le fichier n’est pas ouvert.
-3. Si autorisation : l’API utilise seulement le chemin déclaré dans la politique.
-4. Le chemin est confiné à demo-documents/ ; taille et métadonnées sont vérifiées.
-5. Le contenu est retourné à l’UI, avec Cache-Control: no-store.
+2. API journalise la décision avec l’horodatage, la route normalisée, le
+   résultat, l’identité fictive et le resource_id ; aucun contenu, cookie ou
+   jeton n’est écrit.
+3. Si refus : 401 ou 403 ; le fichier n’est pas ouvert.
+4. Si autorisation mais journal indisponible : 503 ; le fichier n’est pas
+   ouvert. L’accès échoue fermé.
+5. Si autorisation journalisée : l’API utilise seulement le chemin déclaré dans
+   la politique.
+6. Le chemin est confiné à demo-documents/ ; taille et métadonnées sont vérifiées.
+7. Le contenu est retourné à l’UI, avec Cache-Control: no-store.
 ```
 
 Exemple : Oscar peut lire `public-welcome`, mais pas `public-glossary`, RH ou IT.
+Les traces sont écrites dans `.local/audit/access-decisions.jsonl`, hors Git,
+privées et bornées ; les autres routes ne sont pas encore journalisées.
 
 ## 4. Récupération contrôlée
 

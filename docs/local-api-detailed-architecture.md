@@ -28,7 +28,7 @@ Ollama est démarrée ; l’API Python existe seulement pendant l’exécution d
 | `access_control/engine.py` | Traduction groupes -> rôles et décision RBAC/ACL déterministe. |
 | `document_store/reader.py` | Lecture confinée au chemin déclaré, après autorisation. |
 | `document_store/retriever.py` | Classement lexical des seuls documents déjà autorisés. |
-| `audit/security_log.py` | Contrat d'événements d'audit minimaux et stockage local borné ; pas encore raccordé aux routes. |
+| `audit/security_log.py` | Événements d'audit minimaux et stockage local borné, utilisés pour la lecture directe de documents. |
 | `config/demo-idp/directory.json` | Quatre identités et leurs groupes fictifs. |
 | `config/access-control/demo-policy.json` | Groupes, rôles, ACL et chemins des 15 documents. |
 
@@ -67,10 +67,10 @@ ni les modèles, ni la configuration d’Ollama.
 - La clé JWT est créée aléatoirement au démarrage et reste seulement en mémoire.
 - Les sessions expirent après 15 minutes et un redémarrage les invalide.
 - Les prompts et réponses ne sont pas journalisés par le serveur.
-- Le format et le stockage d'un futur journal de décision sont définis et
-  testés : `.local/audit/access-decisions.jsonl`, hors Git, est limité à 1 Mo
-  avec une sauvegarde et des permissions privées. Aucune route ne l'alimente
-  encore ; aucun fichier de journal n'est créé à ce stade.
+- Les décisions de la route de lecture directe sont écrites dans
+  `.local/audit/access-decisions.jsonl`, hors Git, limité à 1 Mo avec une
+  sauvegarde et des permissions privées. Les routes de chat, RAG, recherche et
+  vérification ACL ne sont pas encore journalisées.
 - Les documents sont des fichiers Markdown fictifs versionnés dans Git.
 - Aucun index persistant, embedding, base vectorielle, conversation ou MCP n’existe.
 
@@ -83,12 +83,15 @@ ni les modèles, ni la configuration d’Ollama.
 5. Le récupérateur reçoit uniquement des identifiants déjà autorisés.
 6. Le chat RAG construit son contexte côté serveur, puis retourne les sources.
 7. Ollama ne reçoit jamais un chemin local, une ACL ou une permission.
+8. Une lecture documentaire autorisée est journalisée avant l'ouverture du
+   fichier ; si le journal est indisponible, la lecture est refusée.
 
 ## Limites connues et évolutions
 
 - L’identité est une simulation libre locale, non un SSO d’entreprise.
 - La recherche est lexicale ; elle ne comprend pas encore la similarité sémantique.
 - Le chat RAG limite le contexte à trois extraits de 500 caractères.
+- La journalisation active couvre uniquement la lecture directe de documents.
 - Les documents restent fictifs.
 - Un futur MCP devra passer par une passerelle d’actions contrôlées ; Oscar ne
   pourra utiliser que des actions `read` explicitement enregistrées.

@@ -1,10 +1,12 @@
 import http.client
+from io import StringIO
 import json
 import threading
 import unittest
 from unittest.mock import patch
 
-from ui.server import SESSION_COOKIE_NAME, create_server
+from audit.security_log import AuditStorageError, SecurityAuditLog
+from ui.server import DOCUMENT_AUDIT_ROUTE, SESSION_COOKIE_NAME, create_server
 
 
 class FakeOllamaResponse:
@@ -26,7 +28,9 @@ class ThinkingOllamaResponse(FakeOllamaResponse):
 class LocalAPITests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.server = create_server(port=0)
+        cls.audit_output = StringIO()
+        cls.audit_log = SecurityAuditLog(cls.audit_output)
+        cls.server = create_server(port=0, audit_log=cls.audit_log)
         cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
         cls.thread.start()
         cls.host, cls.port = cls.server.server_address
@@ -121,6 +125,11 @@ class LocalAPITests(unittest.TestCase):
         self.assertEqual(payload["resource_id"], "public-welcome")
         self.assertEqual(payload["classification"], "PUBLIC")
         self.assertIn("Acme-Lab", payload["content"])
+        event = json.loads(self.audit_output.getvalue().splitlines()[-1])
+        self.assertEqual(event["route"], DOCUMENT_AUDIT_ROUTE)
+        self.assertEqual(event["outcome"], "allowed")
+        self.assertEqual(event["identity_id"], "oscar")
+        self.assertEqual(event["resource_id"], "public-welcome")
 
     def test_denied_document_is_not_read(self):
         headers = self.start_demo_session("oscar")
@@ -130,6 +139,35 @@ class LocalAPITests(unittest.TestCase):
             )
         self.assertEqual(status, 403)
         self.assertIn("refusé", payload["error"])
+        reader.assert_not_called()
+        event = json.loads(self.audit_output.getvalue().splitlines()[-1])
+        self.assertEqual(event["outcome"], "denied")
+        self.assertEqual(event["identity_id"], "oscar")
+        self.assertEqual(event["resource_id"], "public-glossary")
+
+    def test_document_without_session_is_audited_as_anonymous_denial(self):
+        status, payload, _ = self.request("GET", "/api/documents/public-welcome")
+
+        self.assertEqual(status, 401)
+        self.assertIn("Session", payload["error"])
+        event = json.loads(self.audit_output.getvalue().splitlines()[-1])
+        self.assertEqual(event["outcome"], "denied")
+        self.assertIsNone(event["identity_id"])
+        self.assertIsNone(event["resource_id"])
+
+    def test_document_is_not_read_when_audit_storage_is_unavailable(self):
+        headers = self.start_demo_session("oscar")
+        with patch.object(
+            self.audit_log,
+            "record_access_decision",
+            side_effect=AuditStorageError("unavailable"),
+        ), patch("ui.server.read_policy_document") as reader:
+            status, payload, _ = self.request(
+                "GET", "/api/documents/public-welcome", headers=headers
+            )
+
+        self.assertEqual(status, 503)
+        self.assertIn("Journal", payload["error"])
         reader.assert_not_called()
 
     def test_document_path_like_identifier_is_rejected(self):

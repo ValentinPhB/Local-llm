@@ -9,8 +9,8 @@ techniques la démontrent.
 - Ollama est accessible depuis le Mac via `127.0.0.1` seulement.
 - L'interface locale est liée à `127.0.0.1:3210` et sa seule cible est `http://127.0.0.1:11434`.
 - Aucun fournisseur cloud, recherche web, import documentaire, embeddings,
-  base vectorielle, génération augmentée, agent ou MCP n'est implémenté. La
-  récupération lexicale locale retourne seulement des extraits ACL autorisés.
+  base vectorielle, agent ou MCP n'est implémenté. La génération augmentée
+  locale utilise seulement des extraits lexicaux ACL autorisés.
 - Aucun port n'est publié sur le LAN ou Internet sans décision explicite et documentée.
 - L'API Ollama ne doit pas être exposée directement à des utilisateurs non authentifiés.
 - Les fonctions cloud et la recherche web d'Ollama sont désactivées pendant la phase locale du laboratoire.
@@ -70,6 +70,9 @@ techniques la démontrent.
   de Git, avec permissions de fichier `600`, répertoire `700`, plafond de 1 Mo
   et un seul fichier de sauvegarde après rotation. La taille maximale est donc
   d'environ 2 Mo.
-- Ce composant est testé mais n'est pas encore raccordé aux routes de l'API :
-  aucun journal d'accès n'est donc produit par le serveur à ce stade.
+- La lecture directe `GET /api/documents/<id>` alimente ce journal pour les
+  décisions autorisées et refusées. Un échec de stockage bloque toute lecture
+  autorisée avec `503`, afin de ne pas exposer de document sans trace.
+- Le chat, le RAG, la recherche et la vérification ACL ne sont pas encore
+  journalisés.
 - Les journaux seront examinés sans y inscrire de données ou secrets réels.
