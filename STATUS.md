@@ -88,12 +88,13 @@ Les références à maintenir à chaque évolution sont
 `docs/current-request-flow.md` (séquence d’exécution) et
 `docs/local-api-detailed-architecture.md` (composants et frontières API).
 
-## Prochaine étape à décider
+## Prochaine étape approuvée
 
-Le socle de validation automatisée est actif : 50 tests Python, JSON, liens
-Markdown et Gitleaks à chaque push ou pull request. Choisir la prochaine brique
-du laboratoire avant toute évolution : journalisation de sécurité minimale,
-amélioration du RAG, ou préparation contrôlée d'un futur MCP. Ne pas ajouter de
+Vérifier le résultat de la CI GitHub Actions déclenchée par le commit
+`f19a77b`. Le socle automatisé compte 50 tests Python, les contrôles JSON et
+liens Markdown, et Gitleaks à chaque push ou pull request. Une fois ce résultat
+confirmé, choisir la prochaine brique du laboratoire avant toute évolution :
+amélioration du RAG ou préparation contrôlée d'un futur MCP. Ne pas ajouter de
 MCP, de donnée réelle, d'embeddings ou de base vectorielle sans décision
 explicite.
 
