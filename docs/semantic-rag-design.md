@@ -10,10 +10,11 @@ sens voisin sans confier les droits d'accès au modèle.
 Le choix approuvé est `embeddinggemma` dans Ollama et Qdrant comme base
 vectorielle locale. `embeddinggemma` est installé localement et son endpoint
 Ollama a produit un vecteur de contrôle pour une phrase fictive. Qdrant est
-démarré mais reste vide. Les adaptateurs `semantic_retrieval/clients.py`
-existent et sont testés avec des services simulés ; aucune route API ne les
-appelle encore. Aucun document n'est indexé. La récupération lexicale et le
-chat RAG existants restent donc la référence active.
+démarré mais reste vide. Les adaptateurs `semantic_retrieval/clients.py` et
+l'indexeur contrôlé `semantic_retrieval/indexer.py` existent et sont testés avec
+des services simulés ; aucune route API ne les appelle encore. Aucun document
+n'est indexé. La récupération lexicale et le chat RAG existants restent donc la
+référence active.
 
 ## Composants retenus
 
@@ -53,6 +54,26 @@ source ou un passage. Qdrant ne constitue pas une source d'autorisation : son
 filtre est construit par l'API après ACL. Le LLM ne reçoit aucun vecteur, accès
 Qdrant, chemin local ou document hors résultat filtré.
 
+## Indexeur contrôlé déjà présent, non encore connecté
+
+`ControlledIndexer` ne prend que des `resource_id` déclarés dans la politique,
+jamais des chemins envoyés par un utilisateur. Il relit chaque document avec
+`read_policy_document`, qui contrôle le répertoire, la taille et les métadonnées
+de front matter. Il retire ensuite ces métadonnées du texte recherché, découpe
+le corps en paragraphes puis en phrases, et limite un passage à 700 caractères.
+Quand un passage suivant ne tient plus, la dernière phrase du précédent est
+réutilisée si elle fait au plus 160 caractères : le contexte reste lisible sans
+dépasser la limite. Une phrase exceptionnellement trop longue est coupée au
+dernier espace possible.
+
+Le fournisseur d'embeddings et le writer sont injectés. L'indexeur construit
+donc d'abord un lot complet et cohérent (vecteurs finis, mêmes dimensions), puis
+le remet une seule fois au writer. Pour l'instant, les tests injectent seulement
+un faux fournisseur et un faux writer : aucune écriture Qdrant ne peut être
+déclenchée par ce code. L'ACL de chaque utilisateur est toujours appliquée plus
+tard, lors de la requête de recherche ; l'indexation est un travail
+administratif local sur les documents explicitement déclarés.
+
 ## Données indexées et rétention
 
 Chaque point Qdrant contiendra uniquement : `resource_id`, `classification`,
@@ -90,14 +111,18 @@ importé par `ui/server.py`.
 Avant activation, la CI doit démontrer automatiquement :
 
 1. un faux fournisseur d'embeddings déterministe permet des tests sans Ollama ;
-2. les requêtes Qdrant reçoivent exactement le filtre `resource_id` construit
+2. l'indexeur refuse une politique ACL invalide ou un identifiant hors politique
+   avant tout embedding ou toute écriture ;
+3. le découpage conserve les fins de phrase, respecte la taille maximale et
+   produit un chevauchement borné ;
+4. les requêtes Qdrant reçoivent exactement le filtre `resource_id` construit
    depuis l'ACL, en particulier Oscar -> `public-welcome` seulement ;
-3. une source RH ou IT interdite n'est ni renvoyée ni transmise au faux LLM ;
-4. l'indisponibilité du fournisseur d'embeddings ou de Qdrant bloque la route
+5. une source RH ou IT interdite n'est ni renvoyée ni transmise au faux LLM ;
+6. l'indisponibilité du fournisseur d'embeddings ou de Qdrant bloque la route
    avant toute lecture ou appel LLM ;
-5. question, vecteurs, passages et résultats ne sont jamais inscrits dans le
+7. question, vecteurs, passages et résultats ne sont jamais inscrits dans le
    journal d'audit ;
-6. une intégration Qdrant réelle s'exécute automatiquement dans GitHub Actions
+8. une intégration Qdrant réelle s'exécute automatiquement dans GitHub Actions
    avec un conteneur de service ; aucune recette manuelle ne constitue une
    validation.
 

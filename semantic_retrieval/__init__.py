@@ -1,1 +1,1 @@
-"""Adaptateurs locaux du futur RAG sémantique contrôlé."""
+"""Composants locaux du futur RAG sémantique contrôlé."""
