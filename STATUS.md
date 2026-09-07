@@ -16,6 +16,8 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
 ## État validé
 
 - Dépôt Git : branche `main`, synchronisée avec `origin/main`.
+- CI GitHub Actions validée sur `main` : les 35 tests, les contrôles JSON et
+  liens Markdown, ainsi que Gitleaks ont réussi sur le commit `38ee851`.
 - Ollama 0.33.3 : API liée à `127.0.0.1:11434` ; cloud Ollama désactivé.
 - Modèle local : `qwen3:4b`, environ 2,5 GB sur disque ; environ 3,2 GB en
   mémoire pendant une inférence.
@@ -79,12 +81,14 @@ Les références à maintenir à chaque évolution sont
 `docs/current-request-flow.md` (séquence d’exécution) et
 `docs/local-api-detailed-architecture.md` (composants et frontières API).
 
-## Prochaine étape approuvée
+## Prochaine étape à décider
 
-Surveiller le premier résultat de la CI GitHub Actions après ce push. Les
-contrôles automatisés actifs sont : 35 tests Python, JSON, liens Markdown et
-Gitleaks. Ne pas ajouter de MCP, de donnée réelle, d'embeddings ou de base
-vectorielle.
+Le socle de validation automatisée est actif : 35 tests Python, JSON, liens
+Markdown et Gitleaks à chaque push ou pull request. Choisir la prochaine brique
+du laboratoire avant toute évolution : journalisation de sécurité minimale,
+amélioration du RAG, ou préparation contrôlée d'un futur MCP. Ne pas ajouter de
+MCP, de donnée réelle, d'embeddings ou de base vectorielle sans décision
+explicite.
 
 ## Reprise recommandée
 
