@@ -12,8 +12,9 @@ qualité, la sécurité, la compatibilité et le retour arrière ont été véri
 ## État actuel
 
 Une CI GitHub Actions est configurée dans `.github/workflows/tests.yml`. Elle
-exécute la suite Python déterministe à chaque push sur `main` et pull request.
-Elle ne déploie rien, ne télécharge aucun modèle et n'appelle pas Ollama.
+exécute la suite Python déterministe et Gitleaks à chaque push sur `main` et
+pull request. Elle ne déploie rien, ne télécharge aucun modèle et n'appelle pas
+Ollama.
 
 Ce document est la cible à atteindre avant de considérer le laboratoire comme
 reproductible. Il n'autorise aucun déploiement réseau ou cloud.
@@ -40,7 +41,7 @@ Chaque branche de travail et chaque pull request vers `main` devra déclencher :
 1. Validation
    -> syntaxe Python et HTML
    -> JSON valide pour les politiques et configurations
-   -> formatage et contrôle statique
+   -> liens Markdown internes existants
 
 2. Tests unitaires
    -> moteur RBAC/ACL : matrice complète autorisation/refus et groupes -> rôles
@@ -53,7 +54,7 @@ Chaque branche de travail et chaque pull request vers `main` devra déclencher :
    -> contrats HTTP : healthcheck, chat, erreurs et délais
 
 4. Sécurité et supply chain
-   -> détection de secrets dans Git
+   -> Gitleaks : détection de secrets dans Git et son historique
    -> scan des dépendances Python et Node si elles apparaissent
    -> scan d'image si un conteneur est ajouté
    -> génération d'un SBOM pour les artefacts empaquetés

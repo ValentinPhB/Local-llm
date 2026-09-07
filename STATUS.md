@@ -42,7 +42,7 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
   est un contrat pour les futurs MCP approuvés : actions `read` explicitement
   enregistrées seulement ; toute autre action est refusée. Aucun MCP n'est
   installé à ce stade.
-- Tests validés : `python3 -m unittest discover -s tests -v` — 33 tests,
+- Tests validés : `python3 -m unittest discover -s tests -v` — 35 tests,
   incluant jeton falsifié/expiré, chat sans session et ACL Alice/RH/IT.
 
 ## À connaître au redémarrage
@@ -81,9 +81,9 @@ Les références à maintenir à chaque évolution sont
 
 ## Prochaine étape approuvée
 
-Étendre les contrôles automatisés de CI : validation de JSON, détection de
-secrets et vérification des liens Markdown, sans recette manuelle comme critère
-de qualité. Ne pas ajouter de MCP, de donnée réelle, d'embeddings ou de base
+Surveiller le premier résultat de la CI GitHub Actions après ce push. Les
+contrôles automatisés actifs sont : 35 tests Python, JSON, liens Markdown et
+Gitleaks. Ne pas ajouter de MCP, de donnée réelle, d'embeddings ou de base
 vectorielle.
 
 ## Reprise recommandée

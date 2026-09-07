@@ -86,6 +86,9 @@ Le même ensemble est exécuté automatiquement par
 `.github/workflows/tests.yml` à chaque push sur `main` et à chaque pull request.
 Les tests utilisent un faux Ollama déterministe : la disponibilité, la vitesse
 ou le texte non déterministe du vrai modèle ne conditionnent jamais le succès.
+La suite valide également tous les JSON sous `config/` et les liens Markdown
+internes ; Gitleaks analyse séparément le dépôt et son historique pour détecter
+des secrets.
 
 ## Preuves à conserver lors de l'exécution
 
