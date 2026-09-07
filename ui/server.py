@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from http import HTTPStatus
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -19,6 +20,13 @@ from typing import Any, Mapping
 from urllib.error import URLError
 from urllib.parse import parse_qs, urlsplit
 from urllib.request import Request, urlopen
+
+# L'exécution documentée est ``python3 ui/server.py``. Dans ce mode Python ne
+# place que ``ui/`` dans son chemin de modules ; ajouter explicitement la racine
+# du dépôt rend les composants d'identité et d'accès disponibles.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from access_control.engine import decide_access_for_roles, policy_is_valid, roles_from_groups
 from identity.demo_sso import (
@@ -39,7 +47,7 @@ MODEL = "qwen3:4b"
 MAX_MESSAGE_CHARS = 8_000
 MAX_AUTH_BODY_BYTES = 256
 SESSION_COOKIE_NAME = "lab_demo_session"
-ROOT = Path(__file__).parents[1]
+ROOT = PROJECT_ROOT
 INDEX = Path(__file__).with_name("index.html")
 POLICY_PATH = ROOT / "config" / "access-control" / "demo-policy.json"
 DIRECTORY_PATH = ROOT / "config" / "demo-idp" / "directory.json"
