@@ -42,6 +42,9 @@ Leur lecture locale autorisée, sans RAG ni envoi au modèle, est décrite dans
 La conception de la récupération filtrée qui précédera le RAG est dans
 [`docs/controlled-retrieval-design.md`](docs/controlled-retrieval-design.md).
 
+La génération augmentée prévue après cette récupération est définie dans
+[`docs/augmented-generation-design.md`](docs/augmented-generation-design.md).
+
 Le contrat de lecture seule prévu pour les futurs MCP est dans
 [`docs/mcp-authorization.md`](docs/mcp-authorization.md) ; aucun MCP n'est
 encore connecté.

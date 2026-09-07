@@ -76,10 +76,12 @@ pas Ollama.
 
 ## Prochaine étape approuvée
 
-Concevoir la génération augmentée : construire côté serveur le contexte Ollama
-à partir des seuls extraits déjà récupérés et autorisés, puis prouver qu'aucun
-passage interdit ne peut atteindre le modèle. Ne pas ajouter de MCP, de donnée
-réelle, d'embeddings ou de base vectorielle.
+Implémenter la génération augmentée conçue dans
+`docs/augmented-generation-design.md` : route distincte du chat simple,
+contexte construit exclusivement côté serveur à partir des extraits ACL, sources
+utilisées retournées et tests prouvant qu'aucun passage interdit ne peut
+atteindre Ollama. Ne pas ajouter de MCP, de donnée réelle, d'embeddings ou de
+base vectorielle.
 
 ## Reprise recommandée
 
