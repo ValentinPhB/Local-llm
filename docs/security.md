@@ -62,4 +62,10 @@ techniques la démontrent.
 
 - Les modifications de configuration sont versionnées dans Git.
 - Les commandes d'installation et leurs vérifications sont documentées.
-- Les journaux sont examinés sans y inscrire de données ou secrets réels.
+- Le composant `audit/security_log.py` ne peut écrire que des événements de
+  décision d'accès : horodatage UTC, route, résultat, identité fictive et
+  identifiant de ressource lorsqu'ils sont disponibles. Il n'accepte aucun
+  prompt, réponse, cookie, JWT ou contenu documentaire.
+- Ce composant est testé mais n'est pas encore raccordé aux routes de l'API :
+  aucun journal d'accès n'est donc produit par le serveur à ce stade.
+- Les journaux seront examinés sans y inscrire de données ou secrets réels.
