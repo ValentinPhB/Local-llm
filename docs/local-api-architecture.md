@@ -38,7 +38,7 @@ Elle n'est pas encore installée comme service permanent.
 | `GET /healthz` | Vérifie que le serveur Python répond. | `{"status":"ok","model":"qwen3:4b"}` |
 | `POST /api/demo-session` | Émet une session fictive signée après choix explicite d'Alice, Bob ou Charlie. | Cookie `HttpOnly` et identité affichable. |
 | `GET /api/session` | Vérifie et retourne l'identité fictive de la session. | `{"authenticated":true,"identity":{…}}` |
-| `GET /api/access-check?resource_id=…` | Évalue une ACL fictive avec les groupes du jeton. | `{"resource_id":"rh-demo","allowed":true}` |
+| `GET /api/access-check?resource_id=…` | Évalue l'ACL d'un document fictif avec les groupes du jeton, sans lire le fichier. | `{"resource_id":"rh-onboarding","allowed":true}` |
 | `POST /api/logout` | Invalide le cookie côté navigateur. | `{"authenticated":false}` |
 | `POST /api/chat` | Vérifie d'abord la session, puis envoie le message à Ollama. | `{"content":"…"}` |
 
@@ -90,14 +90,15 @@ fichiers de configuration.
 ## Ce que Python ne fait pas encore
 
 - pas d'authentification réelle ni de connexion à un annuaire d'entreprise ;
-- pas de document sur lequel appliquer l'ACL ;
+- pas de lecture, d'import ou d'indexation des quinze documents fictifs ;
 - pas de base documentaire, import de fichier ou RAG ;
 - pas de MCP, d'outil ou de credential ;
 - pas de persistance des conversations.
 
-La prochaine évolution utilisera l'ACL sur des documents fictifs : le serveur
-filtrera les ressources avant la recherche et avant l'envoi de tout passage à
-Ollama. Une décision de refus empêchera donc l'envoi du contexte au modèle.
+La prochaine évolution ajoutera un lecteur contrôlé des documents fictifs : le
+serveur filtrera les ressources avant toute lecture, recherche et tout envoi de
+passage à Ollama. Une décision de refus empêchera donc l'envoi du contexte au
+modèle.
 
 ## Démarrage et vérification
 

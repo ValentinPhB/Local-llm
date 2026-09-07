@@ -30,9 +30,13 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
   un cookie `HttpOnly`. La clé est aléatoire, uniquement en mémoire et un
   redémarrage invalide les sessions.
 - L'API vérifie le jeton avant le chat. Elle transforme ses groupes en rôles
-  puis expose seulement une vérification ACL de ressources fictives. Ce n'est
-  pas une authentification : l'identité est volontairement choisie librement.
-- Tests validés : `python3 -m unittest discover -s tests -v` — 15 tests,
+  puis expose seulement une vérification ACL. Ce n'est pas une authentification
+  : l'identité est volontairement choisie librement.
+- Jeu documentaire : quinze fichiers Markdown fictifs existent dans
+  `demo-documents/` (9 PUBLIC, 3 RH, 3 IT). Leur chemin et leurs métadonnées
+  correspondent à la politique ACL ; l'API ne les lit ni ne les envoie encore
+  à Ollama.
+- Tests validés : `python3 -m unittest discover -s tests -v` — 17 tests,
   incluant jeton falsifié/expiré, chat sans session et ACL Alice/RH/IT.
 
 ## À connaître au redémarrage
@@ -58,16 +62,17 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
 
 ## Étape en cours
 
-Le contrat identité -> groupes -> rôles -> ACL fonctionne en simulation locale
-mais ne protège encore aucun document : les ressources sont seulement des
-identifiants fictifs et la route de vérification ne renvoie aucune donnée.
+Le contrat identité -> groupes -> rôles -> ACL fonctionne en simulation locale.
+Les quinze documents fictifs sont réels et contrôlés par les tests, mais la
+route de vérification ne retourne encore aucune donnée et aucun fichier n'est
+lu par l'API.
 
 ## Prochaine étape à décider avec l'utilisateur
 
-Concevoir un premier jeu de documents strictement fictifs, leurs métadonnées
-de classification et leur import contrôlé. Avant tout code, définir le format,
-le stockage local, les tests de refus et la garantie qu'aucun passage interdit
-n'est récupéré ou envoyé à Ollama. Ne pas ajouter de MCP ni de donnée réelle.
+Concevoir le lecteur contrôlé de ces documents. Avant tout code, définir son
+contrat d'entrée, les contrôles de chemin, les erreurs, les tests de refus et la
+garantie qu'aucun passage interdit n'est lu, récupéré ou envoyé à Ollama. Ne pas
+ajouter de MCP ni de donnée réelle.
 
 ## Reprise recommandée
 

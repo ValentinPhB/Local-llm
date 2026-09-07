@@ -55,7 +55,13 @@
       const accessList = document.querySelector('#access-list');
       const logout = document.querySelector('#logout');
       const identityButtons = [...document.querySelectorAll('[data-identity]')];
-      const resources = ['public-demo', 'rh-demo', 'it-demo'];
+      const resources = [
+        'public-welcome', 'public-model-guidelines', 'public-incident-reporting',
+        'public-meeting-rooms', 'public-security-basics', 'public-remote-work',
+        'public-product-overview', 'public-glossary', 'public-training-calendar',
+        'rh-onboarding', 'rh-leave-policy', 'rh-benefits',
+        'it-workstation', 'it-password-reset', 'it-service-catalog',
+      ];
 
       async function readJson(response) {
         try { return await response.json(); } catch { return {}; }

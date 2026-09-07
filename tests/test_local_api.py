@@ -56,11 +56,11 @@ class LocalAPITests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(payload["identity"]["id"], "alice")
 
-        status, payload, _ = self.request("GET", "/api/access-check?resource_id=rh-demo", headers=headers)
+        status, payload, _ = self.request("GET", "/api/access-check?resource_id=rh-onboarding", headers=headers)
         self.assertEqual(status, 200)
         self.assertTrue(payload["allowed"])
 
-        status, payload, _ = self.request("GET", "/api/access-check?resource_id=it-demo", headers=headers)
+        status, payload, _ = self.request("GET", "/api/access-check?resource_id=it-workstation", headers=headers)
         self.assertEqual(status, 403)
         self.assertFalse(payload["allowed"])
 

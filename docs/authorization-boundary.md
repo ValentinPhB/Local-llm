@@ -46,8 +46,9 @@ Outil MCP demandé
 
 1. Définir des identités fictives, rôles et ressources de démonstration. **Fait.**
 2. Mettre en place une simulation de jeton signé et le moteur RBAC / ACL. **Fait ; pas une authentification réelle.**
-3. Ajouter l'import de documents fictifs avec propriétaire et ACL obligatoires.
-4. Construire la récupération filtrée et prouver les refus avec les scénarios
+3. Ajouter des documents fictifs avec métadonnées et ACL obligatoires. **Fait :
+   15 fichiers versionnés, mais pas encore lus par l'API.**
+4. Construire le lecteur et la récupération filtrée, puis prouver les refus avec les scénarios
    `SEC-01` à `SEC-05`.
 5. Ajouter un seul MCP de démonstration, sans privilège système, puis prouver
    que les actions interdites sont refusées.

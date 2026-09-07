@@ -35,9 +35,18 @@ Cette matrice correspond aux identités et marqueurs fictifs des scénarios
 `SEC-01` à `SEC-05`. Lors de la future récupération documentaire, le filtre
 sera appliqué avant toute recherche et avant l'envoi de passages au LLM.
 
+## Ressources physiques de démonstration
+
+La politique référence désormais quinze vrais fichiers sous `demo-documents/` :
+neuf PUBLIC, trois RH et trois IT. Chaque ressource contient son `path`, son
+`classification` et ses `allowed_roles`; le fichier lui-même porte les mêmes
+métadonnées dans son front matter. Le détail est dans
+[`demo-documents.md`](demo-documents.md).
+
 ## Limites actuelles
 
-- Les ressources ne sont pas encore des fichiers ou des documents importés.
+- Les fichiers existent, mais l'API ne les lit, ne les retourne et ne les
+  transmet pas encore à Ollama.
 - La session est une simulation libre locale, non une identité réelle.
 - La route de démonstration ne retourne aucune donnée de ressource : elle
   montre seulement autorisé ou refusé. Le filtrage de documents avant RAG reste

@@ -32,5 +32,8 @@ La simulation locale d'un annuaire et d'un SSO est expliquée dans
 [`docs/demo-sso.md`](docs/demo-sso.md). Elle ne représente pas une connexion
 à un annuaire d'entreprise.
 
+Les quinze documents fictifs, leurs classifications et leurs limites actuelles
+sont décrits dans [`docs/demo-documents.md`](docs/demo-documents.md).
+
 La règle de gestion des versions et mises à jour est décrite dans
 [`docs/release-management.md`](docs/release-management.md).

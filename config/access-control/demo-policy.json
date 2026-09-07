@@ -18,8 +18,20 @@
     {"id": "charlie", "display_name": "Charlie (fictif)", "roles": ["lab_reader"]}
   ],
   "resources": [
-    {"id": "public-demo", "classification": "PUBLIC", "allowed_roles": ["lab_reader"], "example_marker": "ORANGE-100"},
-    {"id": "rh-demo", "classification": "RH", "allowed_roles": ["rh_reader"], "example_marker": "KIWI-742"},
-    {"id": "it-demo", "classification": "IT", "allowed_roles": ["it_reader"], "example_marker": "BANANE-951"}
+    {"id": "public-welcome", "classification": "PUBLIC", "path": "demo-documents/public/welcome.md", "allowed_roles": ["lab_reader"]},
+    {"id": "public-model-guidelines", "classification": "PUBLIC", "path": "demo-documents/public/model-guidelines.md", "allowed_roles": ["lab_reader"]},
+    {"id": "public-incident-reporting", "classification": "PUBLIC", "path": "demo-documents/public/incident-reporting.md", "allowed_roles": ["lab_reader"]},
+    {"id": "public-meeting-rooms", "classification": "PUBLIC", "path": "demo-documents/public/meeting-rooms.md", "allowed_roles": ["lab_reader"]},
+    {"id": "public-security-basics", "classification": "PUBLIC", "path": "demo-documents/public/security-basics.md", "allowed_roles": ["lab_reader"]},
+    {"id": "public-remote-work", "classification": "PUBLIC", "path": "demo-documents/public/remote-work.md", "allowed_roles": ["lab_reader"]},
+    {"id": "public-product-overview", "classification": "PUBLIC", "path": "demo-documents/public/product-overview.md", "allowed_roles": ["lab_reader"]},
+    {"id": "public-glossary", "classification": "PUBLIC", "path": "demo-documents/public/glossary.md", "allowed_roles": ["lab_reader"]},
+    {"id": "public-training-calendar", "classification": "PUBLIC", "path": "demo-documents/public/training-calendar.md", "allowed_roles": ["lab_reader"]},
+    {"id": "rh-onboarding", "classification": "RH", "path": "demo-documents/rh/onboarding.md", "allowed_roles": ["rh_reader"]},
+    {"id": "rh-leave-policy", "classification": "RH", "path": "demo-documents/rh/leave-policy.md", "allowed_roles": ["rh_reader"]},
+    {"id": "rh-benefits", "classification": "RH", "path": "demo-documents/rh/benefits.md", "allowed_roles": ["rh_reader"]},
+    {"id": "it-workstation", "classification": "IT", "path": "demo-documents/it/workstation.md", "allowed_roles": ["it_reader"]},
+    {"id": "it-password-reset", "classification": "IT", "path": "demo-documents/it/password-reset.md", "allowed_roles": ["it_reader"]},
+    {"id": "it-service-catalog", "classification": "IT", "path": "demo-documents/it/service-catalog.md", "allowed_roles": ["it_reader"]}
   ]
 }
