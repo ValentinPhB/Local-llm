@@ -1,3 +1,4 @@
+import base64
 import http.client
 from io import StringIO
 import json
@@ -170,7 +171,13 @@ class LocalAPITests(unittest.TestCase):
     def test_modified_cookie_is_rejected(self):
         headers = self.start_demo_session("bob")
         cookie = headers["Cookie"]
-        altered = f"{cookie[:-1]}{'A' if cookie[-1] != 'A' else 'B'}"
+        cookie_name, token = cookie.split("=", 1)
+        header, payload, signature = token.split(".")
+        signature_bytes = base64.urlsafe_b64decode(signature + "=" * (-len(signature) % 4))
+        altered_signature = base64.urlsafe_b64encode(
+            bytes([signature_bytes[0] ^ 1]) + signature_bytes[1:]
+        ).rstrip(b"=").decode("ascii")
+        altered = f"{cookie_name}={header}.{payload}.{altered_signature}"
         status, payload, _ = self.request("GET", "/api/session", headers={"Cookie": altered})
         self.assertEqual(status, 401)
         self.assertIn("Session", payload["error"])

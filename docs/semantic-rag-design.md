@@ -9,10 +9,11 @@ sens voisin sans confier les droits d'accès au modèle.
 
 Le choix approuvé est `embeddinggemma` dans Ollama et Qdrant comme base
 vectorielle locale. `embeddinggemma` est installé localement et son endpoint
-Ollama a produit un vecteur de contrôle pour une phrase fictive. Qdrant n'est
-pas encore téléchargé ou démarré ; aucun document n'est indexé et l'API ne
-consomme pas encore d'embeddings. La récupération lexicale et le chat RAG
-existants restent donc la référence active.
+Ollama a produit un vecteur de contrôle pour une phrase fictive. Qdrant est
+démarré mais reste vide. Les adaptateurs `semantic_retrieval/clients.py`
+existent et sont testés avec des services simulés ; aucune route API ne les
+appelle encore. Aucun document n'est indexé. La récupération lexicale et le
+chat RAG existants restent donc la référence active.
 
 ## Composants retenus
 
@@ -74,6 +75,15 @@ recherche lexicale, aucun document et aucun message ne seront envoyés au LLM.
 
 Une évolution ultérieure, explicitement décidée, pourra faire utiliser le
 rétrieval sémantique par le RAG. Elle mettra alors à jour le flux de requête.
+
+## État de la couche cliente
+
+`semantic_retrieval/clients.py` fixe les deux seules destinations réseau :
+`127.0.0.1:11434/api/embed` pour Ollama et `127.0.0.1:6333` pour Qdrant. Il
+valide les vecteurs, interdit une liste ACL vide de devenir une recherche globale
+et rejette une ressource renvoyée par Qdrant qui ne figure pas dans le filtre
+autorisé. Il ne contient aucune opération d'écriture Qdrant et n'est pas encore
+importé par `ui/server.py`.
 
 ## Contrôles automatisés obligatoires
 

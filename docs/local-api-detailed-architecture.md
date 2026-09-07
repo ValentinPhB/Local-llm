@@ -28,6 +28,7 @@ Ollama est démarrée ; l’API Python existe seulement pendant l’exécution d
 | `access_control/engine.py` | Traduction groupes -> rôles et décision RBAC/ACL déterministe. |
 | `document_store/reader.py` | Lecture confinée au chemin déclaré, après autorisation. |
 | `document_store/retriever.py` | Classement lexical des seuls documents déjà autorisés. |
+| `semantic_retrieval/clients.py` | Adaptateurs Ollama embeddings et Qdrant, testés mais non raccordés à l'API. |
 | `audit/security_log.py` | Événements d'audit minimaux et stockage local borné, utilisés pour la lecture directe de documents. |
 | `config/demo-idp/directory.json` | Quatre identités et leurs groupes fictifs. |
 | `config/access-control/demo-policy.json` | Groupes, rôles, ACL et chemins des 15 documents. |
@@ -76,7 +77,8 @@ ni les modèles, ni la configuration d’Ollama.
 - Aucun index persistant ni embedding intégré à l'API n’existe. Qdrant local
   est démarré mais sa collection est vide et l'API ne s'y connecte pas encore.
   Le modèle local `embeddinggemma` est installé dans Ollama mais n'est pas
-  encore consommé par ce processus. Aucun MCP n'existe.
+  encore consommé par ce processus. Les adaptateurs sémantiques sont isolés et
+  n'ont pas de route HTTP. Aucun MCP n'existe.
 
 ## Contrôles de frontière
 
