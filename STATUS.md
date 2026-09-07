@@ -5,7 +5,7 @@ point de reprise du projet, pas un journal exhaustif.
 
 ## Dernière mise à jour
 
-2026-09-04
+2026-09-07
 
 ## Objectif
 
@@ -47,11 +47,18 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
 - Ne jamais ajouter de données réelles, secrets, documents personnels ou
   credentials dans le dépôt ou les tests.
 
+## Étape en cours
+
+Un jeu de données RBAC/ACL entièrement fictif est défini dans
+`config/access-control/demo-policy.json`. Il décrit Alice, Bob et Charlie,
+leurs rôles et trois ressources de démonstration. Aucun compte, document réel
+ou contrôle d'accès applicatif n'a encore été créé.
+
 ## Prochaine étape approuvée
 
-Préparer des identités, rôles et ressources entièrement fictifs pour concevoir
-la première couche RBAC/ACL. Ne pas encore importer de document réel ni ajouter
-de MCP.
+Construire un moteur local déterministe qui évalue cette politique fictive et
+le tester contre la matrice attendue. Ne pas encore importer de document réel,
+relier ce moteur à l'interface, ni ajouter de MCP.
 
 ## Reprise recommandée
 

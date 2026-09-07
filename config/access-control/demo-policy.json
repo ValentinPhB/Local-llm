@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Fictional RBAC/ACL policy for the local LLM security lab. Not an authentication system.",
+  "default_decision": "deny",
+  "roles": [
+    {"id": "lab_reader", "description": "Can read PUBLIC resources."},
+    {"id": "rh_reader", "description": "Can read RH resources in addition to PUBLIC resources."},
+    {"id": "it_reader", "description": "Can read IT resources in addition to PUBLIC resources."}
+  ],
+  "identities": [
+    {"id": "alice", "display_name": "Alice (fictif)", "roles": ["lab_reader", "rh_reader"]},
+    {"id": "bob", "display_name": "Bob (fictif)", "roles": ["lab_reader", "it_reader"]},
+    {"id": "charlie", "display_name": "Charlie (fictif)", "roles": ["lab_reader"]}
+  ],
+  "resources": [
+    {"id": "public-demo", "classification": "PUBLIC", "allowed_roles": ["lab_reader"], "example_marker": "ORANGE-100"},
+    {"id": "rh-demo", "classification": "RH", "allowed_roles": ["rh_reader"], "example_marker": "KIWI-742"},
+    {"id": "it-demo", "classification": "IT", "allowed_roles": ["it_reader"], "example_marker": "BANANE-951"}
+  ]
+}
