@@ -2,7 +2,10 @@
 
 ## État actuel
 
-Ajouter la partie **G** de RAG : envoyer à Ollama la question et les extraits déjà récupérés par l'ACL. Le chat simple actuel restera disponible afin de comparer une conversation sans document et une réponse augmentée.
+La partie **G** de RAG est implémentée : `POST /api/rag-chat` envoie à Ollama
+la question et les extraits déjà récupérés par l'ACL. Le chat simple reste
+disponible afin de comparer une conversation sans document et une réponse
+augmentée.
 
 ```text
 Question
@@ -43,7 +46,7 @@ Pour Oscar, la récupération ne peut fournir que `public-welcome`. Ainsi, `/api
 ## Preuves obtenues
 
 1. Une requête augmentée d'Oscar contient `public-welcome` dans le corps envoyé au faux Ollama et aucune chaîne RH ou IT.
-2. Une requête de Bob qui cible RH ne transmet aucun extrait RH.
+2. Une requête RAG d'Oscar qui mentionne RH ne transmet aucun extrait RH ou IT.
 3. Le navigateur qui fournit un champ `context` ou `sources` ne peut pas influencer le contexte envoyé ; ces champs sont ignorés ou refusés.
 4. La réponse API expose les seuls identifiants effectivement utilisés, jamais les chemins locaux.
 5. Le chat simple ne change pas et ne transmet toujours aucun document.

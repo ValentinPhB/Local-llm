@@ -2,34 +2,25 @@
 
 ## État actuel
 
-La partie **R** de RAG est maintenant implémentée : elle retrouve des extraits
-pertinents parmi les documents auxquels l'identité a déjà droit. Aucun extrait
-n'est envoyé à Ollama ; la génération augmentée reste un jalon distinct.
-
-Le RAG complet viendra ensuite :
-
-```text
-Récupération contrôlée (prochain jalon)
-    -> extraits autorisés retournés au navigateur pour vérification
-
-Génération augmentée (jalon suivant)
-    -> seuls ces extraits autorisés ajoutés par le serveur au prompt Ollama
-```
+La partie **R** de RAG est implémentée : elle retrouve des extraits pertinents
+parmi les documents auxquels l'identité a déjà droit. `POST /api/retrieve`
+retourne ces extraits autorisés et `POST /api/rag-chat` les ajoute ensuite au
+contexte Ollama construit côté serveur.
 
 ## Choix initial : recherche lexicale locale
 
-La première implémentation utilisera des mots-clés, pas des embeddings ni une
-base vectorielle. Elle découpera les mots de la question et des documents,
-comptera leurs correspondances, puis retournera les quelques extraits les mieux
-classés.
+L'implémentation active utilise des mots-clés, pas des embeddings ni une base
+vectorielle. Elle découpe les mots de la question et des documents, compte leurs
+correspondances, puis retourne les quelques extraits les mieux classés.
 
 Ce n'est pas encore une recherche sémantique complète, mais c'est un vrai
 contrat de récupération et le meilleur point de départ pédagogique : aucune
 dépendance, aucun téléchargement de modèle d'embeddings, aucun index persistant
 et un comportement déterministe pour les tests de sécurité.
 
-Une base vectorielle pourra remplacer le classement lexical plus tard, sans
-changer l'ordre des contrôles d'accès.
+L'évolution approuvée vers `embeddinggemma` et Qdrant est définie dans
+[`semantic-rag-design.md`](semantic-rag-design.md). Elle sera d'abord ajoutée
+en parallèle, sans changer l'ordre des contrôles d'accès ni le RAG actuel.
 
 ## Flux non négociable
 

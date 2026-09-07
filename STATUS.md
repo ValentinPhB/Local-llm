@@ -96,10 +96,14 @@ instable : son dernier caractère Base64 pouvait ne modifier que des bits de
 remplissage. Le correctif inverse désormais un octet réel de signature ; il a
 passé les 50 tests localement et attend sa validation CI. Le socle automatisé
 comprend aussi les contrôles JSON, liens Markdown et Gitleaks à chaque push ou
-pull request. Une fois ce résultat confirmé, choisir la prochaine brique du
-laboratoire avant toute évolution : amélioration du RAG ou préparation
-contrôlée d'un futur MCP. Ne pas ajouter de MCP, de donnée réelle, d'embeddings
-ou de base vectorielle sans décision explicite.
+pull request.
+
+La prochaine brique approuvée est le RAG sémantique local : `embeddinggemma`
+via Ollama et Qdrant local ARM64, décrits dans `docs/semantic-rag-design.md`.
+Ils ne sont pas encore téléchargés ni démarrés. La prochaine micro-étape est
+de vérifier les ressources disque et Docker avant tout téléchargement, puis de
+préparer une CI Qdrant sans recette manuelle. Ne pas ajouter de donnée réelle,
+MCP, volume hôte large ou exposition réseau sans décision explicite.
 
 ## Reprise recommandée
 

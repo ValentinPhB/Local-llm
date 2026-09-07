@@ -7,8 +7,8 @@ l'architecture et la sécurité d'une plateforme LLM sur macOS Apple Silicon.
 
 Construire et analyser une architecture locale composée d'Ollama, d'une
 interface minimale fournie par ce dépôt
-et, plus tard, d'une récupération RAG de documents déjà soumis à des contrôles
-d'accès.
+et d'une récupération RAG lexicale de documents déjà soumis à des contrôles
+d'accès. Une évolution sémantique locale est conçue progressivement.
 
 ## Principes de sécurité
 
@@ -36,14 +36,18 @@ La simulation locale d'un annuaire et d'un SSO est expliquée dans
 Les quinze documents fictifs, leurs classifications et leurs limites actuelles
 sont décrits dans [`docs/demo-documents.md`](docs/demo-documents.md).
 
-Leur lecture locale autorisée, sans RAG ni envoi au modèle, est décrite dans
+Leur lecture locale autorisée et contrôlée est décrite dans
 [`docs/controlled-document-reader.md`](docs/controlled-document-reader.md).
 
-La conception de la récupération filtrée qui précédera le RAG est dans
+La récupération lexicale filtrée active est expliquée dans
 [`docs/controlled-retrieval-design.md`](docs/controlled-retrieval-design.md).
 
-La génération augmentée prévue après cette récupération est définie dans
+La génération augmentée active est définie dans
 [`docs/augmented-generation-design.md`](docs/augmented-generation-design.md).
+
+La conception approuvée de l’évolution vers embeddings et base vectorielle est
+dans [`docs/semantic-rag-design.md`](docs/semantic-rag-design.md) ; elle n’est
+pas encore déployée.
 
 Le flux de requête et le détail des composants API sont dans
 [`docs/current-request-flow.md`](docs/current-request-flow.md) et
