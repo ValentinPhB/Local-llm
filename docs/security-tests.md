@@ -56,6 +56,8 @@ définie dans [`access-control.md`](access-control.md) et
 | UI-10 | Session Oscar, `GET /api/documents/public-welcome` | `200`, métadonnées et contenu du seul fichier autorisé. |
 | UI-11 | Session Oscar, `GET /api/documents/public-glossary` | `403` ; test automatisé prouve que la fonction de lecture n'est pas appelée. |
 | UI-12 | Identifiant `/api/documents/%2E%2E%2FAGENTS.md` | `400` ; aucun chemin client n'est interprété. |
+| UI-13 | Oscar, `POST /api/retrieve` avec « organisation Acme-Lab » | `public-welcome` seul ; aucun appel à Ollama. |
+| UI-14 | Bob, `POST /api/retrieve` avec « intégration checklist » | Liste vide ; aucun résultat RH. |
 
 ## Scénarios MCP futurs
 

@@ -30,6 +30,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from access_control.engine import decide_access_for_roles, policy_is_valid, roles_from_groups
 from document_store.reader import DocumentError, read_policy_document
+from document_store.retriever import retrieve_documents
 from identity.demo_sso import (
     DemoDirectory,
     TokenError,
@@ -243,6 +244,31 @@ class LocalUIHandler(BaseHTTPRequestHandler):
                 HTTPStatus.OK,
                 {"authenticated": False},
                 {"Set-Cookie": f"{SESSION_COOKIE_NAME}=; Max-Age=0; Path=/; HttpOnly; SameSite=Strict"},
+            )
+            return
+        if request.path == "/api/retrieve":
+            session = self._require_session()
+            if session is None:
+                return
+            body = self._read_json(1_024)
+            query = body.get("query") if body else None
+            if not isinstance(query, str) or not (query := query.strip()) or len(query) > 500:
+                self.send_json(HTTPStatus.BAD_REQUEST, {"error": "Requête de recherche invalide."})
+                return
+            roles = roles_from_groups(self.state.policy, session.groups)
+            resource_ids = [
+                resource["id"]
+                for resource in self.state.policy["resources"]
+                if decide_access_for_roles(self.state.policy, roles, resource["id"]).allowed
+            ]
+            try:
+                results = retrieve_documents(self.state.policy, resource_ids, query, ROOT)
+            except DocumentError:
+                self.send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "Récupération indisponible."})
+                return
+            self.send_json(
+                HTTPStatus.OK,
+                {"results": [result.__dict__ for result in results]},
             )
             return
         if request.path != "/api/chat":

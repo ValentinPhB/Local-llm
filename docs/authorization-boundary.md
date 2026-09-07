@@ -58,3 +58,7 @@ Outil MCP demandé
    que les actions interdites sont refusées.
 
 Aucune de ces étapes ne sera activée sans test de refus correspondant.
+
+Le contrat du jalon 4 est déjà défini dans
+[`controlled-retrieval-design.md`](controlled-retrieval-design.md) : récupération
+lexicale locale, ACL avant lecture et aucune transmission à Ollama à ce stade.

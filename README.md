@@ -39,6 +39,9 @@ sont décrits dans [`docs/demo-documents.md`](docs/demo-documents.md).
 Leur lecture locale autorisée, sans RAG ni envoi au modèle, est décrite dans
 [`docs/controlled-document-reader.md`](docs/controlled-document-reader.md).
 
+La conception de la récupération filtrée qui précédera le RAG est dans
+[`docs/controlled-retrieval-design.md`](docs/controlled-retrieval-design.md).
+
 Le contrat de lecture seule prévu pour les futurs MCP est dans
 [`docs/mcp-authorization.md`](docs/mcp-authorization.md) ; aucun MCP n'est
 encore connecté.

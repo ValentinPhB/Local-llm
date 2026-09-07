@@ -8,9 +8,9 @@ techniques la démontrent.
 
 - Ollama est accessible depuis le Mac via `127.0.0.1` seulement.
 - L'interface locale est liée à `127.0.0.1:3210` et sa seule cible est `http://127.0.0.1:11434`.
-- Aucun fournisseur cloud, recherche web, import documentaire, recherche/RAG,
-  agent ou MCP n'est implémenté durant cette phase. Le lecteur local retourne
-  seulement les fichiers fictifs déjà autorisés par l'ACL.
+- Aucun fournisseur cloud, recherche web, import documentaire, embeddings,
+  base vectorielle, génération augmentée, agent ou MCP n'est implémenté. La
+  récupération lexicale locale retourne seulement des extraits ACL autorisés.
 - Aucun port n'est publié sur le LAN ou Internet sans décision explicite et documentée.
 - L'API Ollama ne doit pas être exposée directement à des utilisateurs non authentifiés.
 - Les fonctions cloud et la recherche web d'Ollama sont désactivées pendant la phase locale du laboratoire.

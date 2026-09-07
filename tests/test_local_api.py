@@ -114,6 +114,24 @@ class LocalAPITests(unittest.TestCase):
         self.assertEqual(status, 400)
         self.assertIn("invalide", payload["error"])
 
+    def test_retrieval_reads_only_oscar_authorized_resource(self):
+        headers = self.start_demo_session("oscar")
+        status, payload, _ = self.request(
+            "POST", "/api/retrieve", json.dumps({"query": "organisation Acme-Lab"}),
+            {"Content-Type": "application/json", **headers},
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual([result["resource_id"] for result in payload["results"]], ["public-welcome"])
+
+    def test_retrieval_returns_no_rh_result_for_bob(self):
+        headers = self.start_demo_session("bob")
+        status, payload, _ = self.request(
+            "POST", "/api/retrieve", json.dumps({"query": "intégration checklist"}),
+            {"Content-Type": "application/json", **headers},
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["results"], [])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -42,7 +42,7 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
   est un contrat pour les futurs MCP approuvés : actions `read` explicitement
   enregistrées seulement ; toute autre action est refusée. Aucun MCP n'est
   installé à ce stade.
-- Tests validés : `python3 -m unittest discover -s tests -v` — 24 tests,
+- Tests validés : `python3 -m unittest discover -s tests -v` — 28 tests,
   incluant jeton falsifié/expiré, chat sans session et ACL Alice/RH/IT.
 
 ## À connaître au redémarrage
@@ -70,14 +70,16 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
 
 Le contrat identité -> groupes -> rôles -> ACL fonctionne en simulation locale.
 Le lecteur contrôlé retourne un document uniquement après autorisation et ne
-lit pas de fichier en cas de refus. Aucun contenu documentaire ne va au modèle.
+lit pas de fichier en cas de refus. La récupération lexicale ne classe que les
+documents autorisés, retourne trois extraits bornés au maximum et ne contacte
+pas Ollama.
 
-## Prochaine étape à décider avec l'utilisateur
+## Prochaine étape approuvée
 
-Concevoir la recherche et récupération filtrées (RAG) de ces documents. Avant
-tout code, définir l'index, le filtrage ACL avant recherche, les tests de refus
-et la garantie qu'aucun passage interdit n'est récupéré ou envoyé à Ollama. Ne
-pas ajouter de MCP ni de donnée réelle.
+Concevoir la génération augmentée : construire côté serveur le contexte Ollama
+à partir des seuls extraits déjà récupérés et autorisés, puis prouver qu'aucun
+passage interdit ne peut atteindre le modèle. Ne pas ajouter de MCP, de donnée
+réelle, d'embeddings ou de base vectorielle.
 
 ## Reprise recommandée
 

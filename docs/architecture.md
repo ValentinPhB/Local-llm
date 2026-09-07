@@ -15,7 +15,8 @@ API locale du laboratoire
   - vérification du jeton et traduction groupes -> rôles
   - RBAC/ACL sur 15 documents fictifs classifiés
   - lecteur documentaire après ACL uniquement
-  - aucune fonction RAG ou MCP configurée
+  - récupération lexicale après ACL, séparée du chat
+  - aucune génération augmentée ou MCP configuré
     |
     | prompt seul ; passages autorisés plus tard
     v
@@ -33,7 +34,8 @@ Modèle local sur Apple Silicon
 | Simulation SSO locale | Émettre un jeton signé pour une identité fictive choisie explicitement | Prouver une identité réelle ou remplacer un IdP d'entreprise |
 | API du laboratoire | Vérifier la session, traduire les groupes en rôles et appliquer l'ACL | Croire une identité libre envoyée avec un chat, ou déléguer un droit au LLM |
 | Lecteur documentaire | Lire un fichier explicitement autorisé et déclaré par la politique | Accepter un chemin client, lire avant l'ACL ou transmettre le fichier au LLM |
-| Future couche RAG | Rechercher parmi les documents déjà autorisés et retourner les passages pertinents | Rendre un document non autorisé accessible au modèle |
+| Récupération locale | Classer des extraits parmi les documents déjà autorisés | Lire ou classer un document non autorisé, ou envoyer un extrait au LLM |
+| Future génération augmentée | Ajouter au prompt uniquement des extraits récupérés et autorisés | Accepter un contexte fourni par le navigateur ou un extrait non filtré |
 | Future passerelle MCP | Autoriser une action déclarée pour un MCP approuvé | Donner un accès implicite à un MCP ou à une action inconnus |
 | Ollama | Exécuter localement l'inférence et servir son API | Gérer les droits applicatifs ou exposer l'API hors de la machine |
 | LLM | Produire une réponse à partir du prompt et du contexte reçus | Accéder directement au filesystem, décider des permissions ou utiliser des credentials d'administration |
@@ -56,7 +58,9 @@ pas permettre de contourner le filtre d'autorisation technique.
 
 La conception détaillée de cette frontière avant RAG et MCP est conservée dans
 [`authorization-boundary.md`](authorization-boundary.md). Le contrat de la
-simulation SSO est dans [`demo-sso.md`](demo-sso.md).
+simulation SSO est dans [`demo-sso.md`](demo-sso.md). La prochaine récupération
+lexicale filtrée est définie dans
+[`controlled-retrieval-design.md`](controlled-retrieval-design.md).
 
 ## Limites initiales
 

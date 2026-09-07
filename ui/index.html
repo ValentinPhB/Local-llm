@@ -45,6 +45,17 @@
         <pre id="document-content"></pre>
       </section>
 
+      <section aria-labelledby="retrieval-title">
+        <h2 id="retrieval-title">Recherche contrôlée</h2>
+        <form id="retrieval">
+          <label for="query">Question de recherche</label>
+          <textarea id="query" maxlength="500" required></textarea>
+          <button id="retrieve" type="submit">Rechercher</button>
+        </form>
+        <ul id="retrieval-results" hidden></ul>
+        <p class="note">La recherche ne consulte que les documents autorisés par l’ACL. Ses extraits ne sont pas envoyés au modèle.</p>
+      </section>
+
       <div id="reply" aria-live="polite">Choisis une identité de démonstration pour commencer.</div>
       <form id="chat">
         <label for="message">Message</label>
@@ -64,6 +75,10 @@
       const documentViewer = document.querySelector('#document-viewer');
       const documentTitle = document.querySelector('#document-title');
       const documentContent = document.querySelector('#document-content');
+      const retrievalForm = document.querySelector('#retrieval');
+      const query = document.querySelector('#query');
+      const retrieve = document.querySelector('#retrieve');
+      const retrievalResults = document.querySelector('#retrieval-results');
       const identityButtons = [...document.querySelectorAll('[data-identity]')];
       const resources = [
         'public-welcome', 'public-model-guidelines', 'public-incident-reporting',
@@ -127,6 +142,7 @@
           sessionStatus.textContent = 'Aucune session de démonstration active.';
           accessList.hidden = true;
           documentViewer.hidden = true;
+          retrievalResults.hidden = true;
           logout.hidden = true;
           return false;
         }
@@ -162,6 +178,30 @@
         await fetch('/api/logout', {method: 'POST'});
         await refreshSession();
         reply.textContent = 'Session de démonstration fermée.';
+      });
+
+      retrievalForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        retrieve.disabled = true;
+        retrievalResults.replaceChildren();
+        try {
+          const response = await fetch('/api/retrieve', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({query: query.value}),
+          });
+          const body = await readJson(response);
+          if (!response.ok) throw new Error(body.error || 'Recherche refusée.');
+          for (const result of body.results) {
+            const item = document.createElement('li');
+            item.textContent = `${result.resource_id} (${result.classification}) : ${result.excerpt}`;
+            retrievalResults.append(item);
+          }
+          if (!body.results.length) retrievalResults.textContent = 'Aucun résultat autorisé.';
+          retrievalResults.hidden = false;
+        } catch (error) {
+          retrievalResults.textContent = error.message || 'Recherche impossible.';
+          retrievalResults.hidden = false;
+        } finally { retrieve.disabled = false; }
       });
 
       form.addEventListener('submit', async (event) => {
