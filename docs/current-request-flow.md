@@ -80,10 +80,12 @@ Route : `POST /api/retrieve` avec `{"query":"…"}`.
 
 ```text
 1. API vérifie session, groupes et rôles.
-2. API calcule la liste des resource_id autorisés.
-3. Seuls ces fichiers sont lus par le récupérateur.
-4. Recherche lexicale locale par mots-clés.
-5. Au plus trois extraits de 500 caractères sont retournés à l’UI.
+2. API journalise la décision d'exécuter la recherche, sans sa requête ni ses
+   résultats. Si le journal est indisponible : 503 ; aucun fichier n'est lu.
+3. API calcule la liste des resource_id autorisés.
+4. Seuls ces fichiers sont lus par le récupérateur.
+5. Recherche lexicale locale par mots-clés.
+6. Au plus trois extraits de 500 caractères sont retournés à l’UI.
 ```
 
 Il n’y a pas d’embeddings, de base vectorielle ou d’index persistant. Une

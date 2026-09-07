@@ -9,6 +9,7 @@ from audit.security_log import AuditStorageError, SecurityAuditLog
 from ui.server import (
     ACCESS_CHECK_AUDIT_ROUTE,
     DOCUMENT_AUDIT_ROUTE,
+    RETRIEVAL_AUDIT_ROUTE,
     SESSION_COOKIE_NAME,
     create_server,
 )
@@ -225,6 +226,13 @@ class LocalAPITests(unittest.TestCase):
         )
         self.assertEqual(status, 200)
         self.assertEqual([result["resource_id"] for result in payload["results"]], ["public-welcome"])
+        event = json.loads(self.audit_output.getvalue().splitlines()[-1])
+        self.assertEqual(event["route"], RETRIEVAL_AUDIT_ROUTE)
+        self.assertEqual(event["outcome"], "allowed")
+        self.assertEqual(event["identity_id"], "oscar")
+        self.assertIsNone(event["resource_id"])
+        self.assertNotIn("organisation", json.dumps(event, ensure_ascii=False))
+        self.assertNotIn("Acme-Lab", json.dumps(event, ensure_ascii=False))
 
     def test_retrieval_returns_no_rh_result_for_bob(self):
         headers = self.start_demo_session("bob")
@@ -234,6 +242,41 @@ class LocalAPITests(unittest.TestCase):
         )
         self.assertEqual(status, 200)
         self.assertEqual(payload["results"], [])
+
+    def test_retrieval_without_session_is_audited_as_anonymous_denial(self):
+        status, payload, _ = self.request(
+            "POST",
+            "/api/retrieve",
+            json.dumps({"query": "donnée privée"}),
+            {"Content-Type": "application/json"},
+        )
+
+        self.assertEqual(status, 401)
+        self.assertIn("Session", payload["error"])
+        event = json.loads(self.audit_output.getvalue().splitlines()[-1])
+        self.assertEqual(event["route"], RETRIEVAL_AUDIT_ROUTE)
+        self.assertEqual(event["outcome"], "denied")
+        self.assertIsNone(event["identity_id"])
+        self.assertIsNone(event["resource_id"])
+        self.assertNotIn("donnée privée", json.dumps(event, ensure_ascii=False))
+
+    def test_retrieval_does_not_read_documents_when_audit_storage_is_unavailable(self):
+        headers = self.start_demo_session("oscar")
+        with patch.object(
+            self.audit_log,
+            "record_access_decision",
+            side_effect=AuditStorageError("unavailable"),
+        ), patch("ui.server.retrieve_documents") as retriever:
+            status, payload, _ = self.request(
+                "POST",
+                "/api/retrieve",
+                json.dumps({"query": "organisation Acme-Lab"}),
+                {"Content-Type": "application/json", **headers},
+            )
+
+        self.assertEqual(status, 503)
+        self.assertIn("Journal", payload["error"])
+        retriever.assert_not_called()
 
     def test_rag_chat_sends_only_oscar_authorized_source_to_ollama(self):
         headers = self.start_demo_session("oscar")

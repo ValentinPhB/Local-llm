@@ -60,6 +60,7 @@ DIRECTORY_PATH = ROOT / "config" / "demo-idp" / "directory.json"
 THINKING_PREFIX = re.compile(r"^.*?</think>\s*", re.DOTALL | re.IGNORECASE)
 DOCUMENT_AUDIT_ROUTE = "/api/documents/:resource_id"
 ACCESS_CHECK_AUDIT_ROUTE = "/api/access-check"
+RETRIEVAL_AUDIT_ROUTE = "/api/retrieve"
 
 
 class ApplicationState:
@@ -303,13 +304,22 @@ class LocalUIHandler(BaseHTTPRequestHandler):
             )
             return
         if request.path == "/api/retrieve":
-            session = self._require_session()
+            # Ne jamais journaliser la requête de recherche : elle peut contenir
+            # une donnée sensible. Seule la décision d'exécuter la recherche est
+            # tracée, avant toute lecture documentaire.
+            session = self._session()
             if session is None:
+                self._record_access_decision(RETRIEVAL_AUDIT_ROUTE, "denied")
+                self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "Session de démonstration requise."})
                 return
             body = self._read_json(1_024)
             query = body.get("query") if body else None
             if not isinstance(query, str) or not (query := query.strip()) or len(query) > 500:
+                self._record_access_decision(RETRIEVAL_AUDIT_ROUTE, "denied", session)
                 self.send_json(HTTPStatus.BAD_REQUEST, {"error": "Requête de recherche invalide."})
+                return
+            if not self._record_access_decision(RETRIEVAL_AUDIT_ROUTE, "allowed", session):
+                self.send_json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Journal de sécurité indisponible."})
                 return
             roles = roles_from_groups(self.state.policy, session.groups)
             resource_ids = [
