@@ -8,11 +8,11 @@ techniques la démontrent.
 
 - Ollama est accessible depuis le Mac via `127.0.0.1` seulement.
 - L'interface locale est liée à `127.0.0.1:3210` et sa seule cible est `http://127.0.0.1:11434`.
-- Aucun fournisseur cloud, recherche web, import documentaire, base vectorielle,
-  agent ou MCP n'est implémenté. Le modèle d'embeddings local `embeddinggemma`
-  est installé mais n'est pas encore appelé par l'API ni relié à un index. La
-  génération augmentée locale utilise seulement des extraits lexicaux ACL
-  autorisés.
+- Aucun fournisseur cloud, recherche web, import documentaire, agent ou MCP
+  n'est implémenté. Qdrant local est préparé, vide et lié seulement à
+  `127.0.0.1:6333`; le modèle d'embeddings local `embeddinggemma` est installé,
+  mais l'API ne les appelle pas encore. La génération augmentée locale utilise
+  seulement des extraits lexicaux ACL autorisés.
 - Aucun port n'est publié sur le LAN ou Internet sans décision explicite et documentée.
 - L'API Ollama ne doit pas être exposée directement à des utilisateurs non authentifiés.
 - Les fonctions cloud et la recherche web d'Ollama sont désactivées pendant la phase locale du laboratoire.

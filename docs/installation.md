@@ -20,12 +20,12 @@ Pour chaque étape, documenter :
 | --- | --- |
 | Git | Dépôt local initialisé et synchronisé avec GitHub |
 | Ollama | Installé, serveur local démarré (version 0.33.3) |
-| Modèle LLM | `qwen3:4b` téléchargé localement (2,5 GB selon Ollama) |
-| Docker / Docker Desktop | Disponible, aucun conteneur du laboratoire lancé |
+| Modèles Ollama | `qwen3:4b` (2,5 GB) et `embeddinggemma` (621 MB) téléchargés localement |
+| Docker / Docker Desktop | Disponible ; Qdrant local ARM64 lancé pour préparer le RAG sémantique |
 | Interface locale minimale | Créée et testée ; démarrage manuel nécessaire |
 | Annuaire / SSO de démonstration | Fictif, local, jetons signés éphémères ; aucun annuaire d'entreprise |
-| Documents de démonstration | 15 fichiers Markdown fictifs, versionnés, classifiés et lisibles après ACL ; aucun RAG |
-| Ports réseau du laboratoire | Ollama : `127.0.0.1:11434` ; interface : `127.0.0.1:3210` |
+| Documents de démonstration | 15 fichiers Markdown fictifs, versionnés, classifiés ; RAG lexical actif après ACL |
+| Ports réseau du laboratoire | Ollama : `127.0.0.1:11434` ; interface : `127.0.0.1:3210` ; Qdrant : `127.0.0.1:6333` |
 
 ## Entrées d'installation
 
@@ -37,7 +37,8 @@ Pour chaque étape, documenter :
 - **Données locales :** Ollama utilise `~/.ollama` pour ses modèles, réglages et journaux. Aucun modèle n'a encore été téléchargé.
 - **Réseau :** le processus écoute sur `127.0.0.1:11434`, donc uniquement depuis ce Mac.
 - **Mode local uniquement :** `~/.ollama/server.json` contient `"disable_ollama_cloud": true`. Après redémarrage, les journaux confirment `Ollama cloud disabled: true`.
-- **Premier modèle :** `qwen3:4b` (ID `359d7dd4bcda`) a été téléchargé localement ; taille indiquée par Ollama : 2,5 GB. Aucun autre modèle n'est installé.
+- **Premier modèle :** `qwen3:4b` (ID `359d7dd4bcda`) a été téléchargé localement ; taille indiquée par Ollama : 2,5 GB.
+- **Modèle d'embeddings — 2026-09-07 :** `embeddinggemma` (ID `85462619ee72`) est téléchargé localement ; taille indiquée par Ollama : 621 MB. Un appel local `/api/embed` avec une phrase fictive a retourné un vecteur de 768 dimensions. Il n'est pas encore relié à l'API, à Qdrant ou à des documents.
 - **Mémoire observée :** lors de la première inférence, le modèle a occupé 3,2 GB via Metal avec un contexte de 4096 tokens. `ollama stop qwen3:4b` l'a déchargé sans supprimer les fichiers sur disque.
 - **Thinking :** lors d'un test API, `think: false` n'a pas empêché une trace `<think>` d'apparaître dans `message.content`. Ne pas utiliser ce réglage comme une garantie de non-divulgation.
 - **Vérifications :**
@@ -97,3 +98,21 @@ Pour chaque étape, documenter :
   qu'après session et ACL ; `tests/test_document_reader.py` et
   `tests/test_local_api.py` vérifient la lecture autorisée, le refus avant
   lecture et le blocage d'un identifiant assimilable à un chemin.
+
+### Qdrant local — 2026-09-07
+
+- **Rôle :** future base vectorielle locale du RAG sémantique. Elle n'est pas
+  encore utilisée par l'API et sa collection est vide : aucun document ni
+  vecteur n'est indexé à cette étape.
+- **Image :** `qdrant/qdrant:v1.19.1-unprivileged`, verrouillée par le digest
+  `sha256:801777072776dc81b2ed487571f21ecd30efffd15ddb1671f2193d` dans
+  [`compose.qdrant.yml`](../compose.qdrant.yml). Docker Desktop a sélectionné
+  l'image ARM64.
+- **Persistance :** volume Docker nommé `llm-lab-qdrant-data`, monté seulement
+  dans `/qdrant/storage`. Aucun montage du dépôt, du répertoire personnel, de
+  la racine macOS ou du socket Docker.
+- **Confinement :** utilisateur `1000:1000`, image non privilégiée,
+  `cap_drop: ALL`, `no-new-privileges`, limite de 256 processus et 1 Go de RAM.
+  Le conteneur ne redémarre pas automatiquement.
+- **Réseau :** seul `127.0.0.1:6333` est publié ; aucune exposition LAN ou
+  Internet. La santé locale `/healthz` a répondu `healthz check passed`.

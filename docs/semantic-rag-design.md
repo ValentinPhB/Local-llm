@@ -23,9 +23,11 @@ existants restent donc la référence active.
 | API Python | Applique session, RBAC/ACL, filtre Qdrant, bornage, audit et relais LLM. | Seul composant qui parle à Qdrant ou Ollama. |
 
 `embeddinggemma` occupe environ 622 Mo sur disque et convient à la recherche
-multilingue locale. Qdrant utilisera un volume Docker nommé dédié, jamais le
-répertoire personnel, la racine du système ou le socket Docker. Avec les quinze
-documents fictifs, les vecteurs occuperont un espace négligeable face au modèle.
+multilingue locale. Qdrant tourne sous l'utilisateur `1000:1000`, avec un
+volume Docker nommé dédié, jamais le répertoire personnel, la racine du système
+ou le socket Docker. Il est limité à 1 Go de RAM et publié seulement sur
+`127.0.0.1:6333`. Avec les quinze documents fictifs, les vecteurs occuperont un
+espace négligeable face au modèle.
 
 ## Flux cible, non négociable
 

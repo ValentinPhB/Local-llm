@@ -73,9 +73,10 @@ ni les modèles, ni la configuration d’Ollama.
   termes de recherche, extraits, messages, sources et réponses ne sont pas
   journalisés.
 - Les documents sont des fichiers Markdown fictifs versionnés dans Git.
-- Aucun index persistant, embedding intégré à l'API, base vectorielle,
-  conversation ou MCP n’existe. Le modèle local `embeddinggemma` est installé
-  dans Ollama mais n'est pas encore consommé par ce processus.
+- Aucun index persistant ni embedding intégré à l'API n’existe. Qdrant local
+  est démarré mais sa collection est vide et l'API ne s'y connecte pas encore.
+  Le modèle local `embeddinggemma` est installé dans Ollama mais n'est pas
+  encore consommé par ce processus. Aucun MCP n'existe.
 
 ## Contrôles de frontière
 

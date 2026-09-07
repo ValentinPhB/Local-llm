@@ -102,11 +102,12 @@ La prochaine brique approuvée est le RAG sémantique local : `embeddinggemma`
 via Ollama et Qdrant local ARM64, décrits dans `docs/semantic-rag-design.md`.
 Le pré-vol a confirmé 56 Go libres et Docker `aarch64`. `embeddinggemma` est
 installé (621 Mo) et a produit un vecteur local pour une phrase fictive ; aucun
-document n'est indexé. Qdrant n'est pas encore téléchargé ni démarré. La
-prochaine micro-étape est d'installer Qdrant localement avec volume Docker
-dédié, port `127.0.0.1` et tests CI sans recette manuelle. Ne pas ajouter de
-donnée réelle, MCP, volume hôte large ou exposition réseau sans décision
-explicite.
+document n'est indexé. Qdrant ARM64 est démarré, vide, sous `1000:1000`, avec
+un volume Docker dédié, 1 Go de RAM, aucune capacité additionnelle et seulement
+`127.0.0.1:6333` publié. La prochaine micro-étape est d'ajouter le client
+sémantique et ses faux fournisseurs déterministes, avant toute indexation,
+puis une CI Qdrant sans recette manuelle. Ne pas ajouter de donnée réelle, MCP,
+volume hôte large ou exposition réseau sans décision explicite.
 
 ## Reprise recommandée
 
