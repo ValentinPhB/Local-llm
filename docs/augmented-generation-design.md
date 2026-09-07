@@ -1,6 +1,6 @@
-# Conception de la génération augmentée contrôlée
+# Génération augmentée contrôlée
 
-## Objectif
+## État actuel
 
 Ajouter la partie **G** de RAG : envoyer à Ollama la question et les extraits déjà récupérés par l'ACL. Le chat simple actuel restera disponible afin de comparer une conversation sans document et une réponse augmentée.
 
@@ -13,7 +13,7 @@ Question
     -> réponse + sources utilisées au navigateur
 ```
 
-## Route distincte proposée
+## Route distincte active
 
 `POST /api/rag-chat` recevra uniquement :
 
@@ -40,7 +40,7 @@ Cette consigne réduit le risque de prompt injection documentaire, mais elle ne 
 
 Pour Oscar, la récupération ne peut fournir que `public-welcome`. Ainsi, `/api/rag-chat` ne peut envoyer à Ollama que sa question et un extrait de ce fichier. Une mention de RH dans la question ne modifie pas cette liste.
 
-## Tests impératifs
+## Preuves obtenues
 
 1. Une requête augmentée d'Oscar contient `public-welcome` dans le corps envoyé au faux Ollama et aucune chaîne RH ou IT.
 2. Une requête de Bob qui cible RH ne transmet aucun extrait RH.

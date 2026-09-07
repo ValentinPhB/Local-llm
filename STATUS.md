@@ -42,7 +42,7 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
   est un contrat pour les futurs MCP approuvés : actions `read` explicitement
   enregistrées seulement ; toute autre action est refusée. Aucun MCP n'est
   installé à ce stade.
-- Tests validés : `python3 -m unittest discover -s tests -v` — 28 tests,
+- Tests validés : `python3 -m unittest discover -s tests -v` — 29 tests,
   incluant jeton falsifié/expiré, chat sans session et ACL Alice/RH/IT.
 
 ## À connaître au redémarrage
@@ -72,15 +72,14 @@ Le contrat identité -> groupes -> rôles -> ACL fonctionne en simulation locale
 Le lecteur contrôlé retourne un document uniquement après autorisation et ne
 lit pas de fichier en cas de refus. La récupération lexicale ne classe que les
 documents autorisés, retourne trois extraits bornés au maximum et ne contacte
-pas Ollama.
+pas Ollama. La route RAG construit ensuite côté serveur le contexte Ollama avec
+ces seuls extraits et renvoie leurs identifiants de source.
 
 ## Prochaine étape approuvée
 
-Implémenter la génération augmentée conçue dans
-`docs/augmented-generation-design.md` : route distincte du chat simple,
-contexte construit exclusivement côté serveur à partir des extraits ACL, sources
-utilisées retournées et tests prouvant qu'aucun passage interdit ne peut
-atteindre Ollama. Ne pas ajouter de MCP, de donnée réelle, d'embeddings ou de
+Qualifer la génération augmentée avec le vrai modèle local : tester Oscar et
+les autres identités, vérifier les sources affichées et l'absence de contenu RH
+ou IT pour Oscar. Ne pas ajouter de MCP, de donnée réelle, d'embeddings ou de
 base vectorielle.
 
 ## Reprise recommandée

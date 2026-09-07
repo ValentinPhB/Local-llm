@@ -61,6 +61,7 @@
         <label for="message">Message</label>
         <textarea id="message" maxlength="8000" required></textarea>
         <button id="send" type="submit">Envoyer</button>
+        <button id="rag-send" class="secondary" type="button">Envoyer avec sources autorisées</button>
       </form>
       <p class="note">Cette interface n'enregistre pas les échanges et n'offre ni outil, ni MCP, ni import de document. Les documents autorisés peuvent être lus dans cette page, mais ne sont jamais envoyés au modèle.</p>
     </main>
@@ -69,6 +70,7 @@
       const message = document.querySelector('#message');
       const reply = document.querySelector('#reply');
       const send = document.querySelector('#send');
+      const ragSend = document.querySelector('#rag-send');
       const sessionStatus = document.querySelector('#session-status');
       const accessList = document.querySelector('#access-list');
       const logout = document.querySelector('#logout');
@@ -204,24 +206,26 @@
         } finally { retrieve.disabled = false; }
       });
 
-      form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        send.disabled = true;
-        reply.textContent = 'Réponse locale en cours…';
+      async function sendChat(withSources) {
+        send.disabled = true; ragSend.disabled = true;
+        reply.textContent = withSources ? 'Recherche et réponse locale en cours…' : 'Réponse locale en cours…';
         try {
-          const result = await fetch('/api/chat', {
+          const result = await fetch(withSources ? '/api/rag-chat' : '/api/chat', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({message: message.value}),
           });
           const body = await readJson(result);
-          reply.textContent = body.content || body.error || 'Réponse vide.';
+          const sources = body.sources?.length ? `\n\nSources : ${body.sources.join(', ')}` : '';
+          reply.textContent = (body.content || body.error || 'Réponse vide.') + sources;
         } catch {
           reply.textContent = 'Impossible de joindre l’interface locale.';
         } finally {
-          send.disabled = false;
+          send.disabled = false; ragSend.disabled = false;
         }
-      });
+      }
+      form.addEventListener('submit', async (event) => { event.preventDefault(); await sendChat(false); });
+      ragSend.addEventListener('click', async () => { if (form.reportValidity()) await sendChat(true); });
 
       refreshSession();
     </script>

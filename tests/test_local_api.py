@@ -7,6 +7,17 @@ from unittest.mock import patch
 from ui.server import SESSION_COOKIE_NAME, create_server
 
 
+class FakeOllamaResponse:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def read(self):
+        return b'{"message":{"content":"RAG-OK"}}'
+
+
 class LocalAPITests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -131,6 +142,29 @@ class LocalAPITests(unittest.TestCase):
         )
         self.assertEqual(status, 200)
         self.assertEqual(payload["results"], [])
+
+    def test_rag_chat_sends_only_oscar_authorized_source_to_ollama(self):
+        headers = self.start_demo_session("oscar")
+        captured = {}
+
+        def fake_urlopen(request, timeout):
+            captured["payload"] = json.loads(request.data)
+            return FakeOllamaResponse()
+
+        with patch("ui.server.urlopen", side_effect=fake_urlopen):
+            status, payload, _ = self.request(
+                "POST",
+                "/api/rag-chat",
+                json.dumps({"message": "organisation Acme-Lab", "context": "RH interdit"}),
+                {"Content-Type": "application/json", **headers},
+            )
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["content"], "RAG-OK")
+        self.assertEqual(payload["sources"], ["public-welcome"])
+        sent = json.dumps(captured["payload"], ensure_ascii=False)
+        self.assertIn("public-welcome", sent)
+        self.assertNotIn("RH interdit", sent)
+        self.assertNotIn("rh-onboarding", sent)
 
 
 if __name__ == "__main__":

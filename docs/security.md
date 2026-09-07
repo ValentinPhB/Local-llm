@@ -42,6 +42,8 @@ techniques la démontrent.
   récupérée ni transmise dans le contexte du modèle.
 - Le lecteur documentaire n'accepte aucun chemin client : il résout uniquement
   le chemin déclaré dans la politique, confiné à `demo-documents/`, après ACL.
+- La génération augmentée ignore tout champ client `context` ou `sources` : son
+  prompt est construit côté serveur depuis la récupération ACL autorisée.
 - Les traces de raisonnement éventuelles sont traitées comme des données potentiellement sensibles : elles ne doivent pas être affichées ou journalisées par défaut.
 - Une option client telle que `think: false` n'est pas considérée comme une garantie de suppression de ces traces sans test du contenu réellement reçu.
 - Les routes de chat ne doivent jamais accepter un identifiant, des groupes ou

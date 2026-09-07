@@ -41,6 +41,7 @@ Elle n'est pas encore installée comme service permanent.
 | `GET /api/access-check?resource_id=…` | Évalue l'ACL d'un document fictif avec les groupes du jeton, sans lire le fichier. | `{"resource_id":"rh-onboarding","allowed":true}` |
 | `GET /api/documents/<resource_id>` | Vérifie l'ACL puis lit le seul fichier déclaré par la politique. | `{"resource_id":"public-welcome","classification":"PUBLIC","content":"…"}` |
 | `POST /api/retrieve` | Recherche lexicalement parmi les seuls documents autorisés, sans appeler Ollama. | `{"results":[{"resource_id":"…","excerpt":"…"}]}` |
+| `POST /api/rag-chat` | Récupère des extraits autorisés, construit le contexte côté serveur et appelle Ollama. | `{"content":"…","sources":["public-welcome"]}` |
 | `POST /api/logout` | Invalide le cookie côté navigateur. | `{"authenticated":false}` |
 | `POST /api/chat` | Vérifie d'abord la session, puis envoie le message à Ollama. | `{"content":"…"}` |
 

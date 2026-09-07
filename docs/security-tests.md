@@ -58,6 +58,7 @@ définie dans [`access-control.md`](access-control.md) et
 | UI-12 | Identifiant `/api/documents/%2E%2E%2FAGENTS.md` | `400` ; aucun chemin client n'est interprété. |
 | UI-13 | Oscar, `POST /api/retrieve` avec « organisation Acme-Lab » | `public-welcome` seul ; aucun appel à Ollama. |
 | UI-14 | Bob, `POST /api/retrieve` avec « intégration checklist » | Liste vide ; aucun résultat RH. |
+| UI-15 | Oscar, `POST /api/rag-chat` avec un faux champ `context` RH | Faux contexte absent ; `public-welcome` est la seule source envoyée au faux Ollama. |
 
 ## Scénarios MCP futurs
 
