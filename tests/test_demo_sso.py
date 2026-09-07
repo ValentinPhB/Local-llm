@@ -1,3 +1,4 @@
+import base64
 import json
 from pathlib import Path
 import unittest
@@ -28,7 +29,12 @@ class DemoSSOTests(unittest.TestCase):
 
     def test_modified_token_is_rejected(self):
         token = issue_demo_token(self.directory, "alice", self.signing_key, now=1_000)
-        altered = f"{token[:-1]}{'A' if token[-1] != 'A' else 'B'}"
+        header, payload, signature = token.split(".")
+        signature_bytes = base64.urlsafe_b64decode(signature + "=" * (-len(signature) % 4))
+        altered_signature = base64.urlsafe_b64encode(
+            bytes([signature_bytes[0] ^ 1]) + signature_bytes[1:]
+        ).rstrip(b"=").decode("ascii")
+        altered = f"{header}.{payload}.{altered_signature}"
         with self.assertRaises(TokenError):
             verify_demo_token(altered, self.directory, self.signing_key, now=1_001)
 
