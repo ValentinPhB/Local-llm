@@ -91,12 +91,15 @@ Les références à maintenir à chaque évolution sont
 ## Prochaine étape approuvée
 
 Vérifier le résultat de la CI GitHub Actions déclenchée par le commit
-`f19a77b`. Le socle automatisé compte 50 tests Python, les contrôles JSON et
-liens Markdown, et Gitleaks à chaque push ou pull request. Une fois ce résultat
-confirmé, choisir la prochaine brique du laboratoire avant toute évolution :
-amélioration du RAG ou préparation contrôlée d'un futur MCP. Ne pas ajouter de
-MCP, de donnée réelle, d'embeddings ou de base vectorielle sans décision
-explicite.
+`38b88c9`. Le commit RAG `f19a77b` a révélé un test de falsification de jeton
+instable : son dernier caractère Base64 pouvait ne modifier que des bits de
+remplissage. Le correctif inverse désormais un octet réel de signature ; il a
+passé les 50 tests localement et attend sa validation CI. Le socle automatisé
+comprend aussi les contrôles JSON, liens Markdown et Gitleaks à chaque push ou
+pull request. Une fois ce résultat confirmé, choisir la prochaine brique du
+laboratoire avant toute évolution : amélioration du RAG ou préparation
+contrôlée d'un futur MCP. Ne pas ajouter de MCP, de donnée réelle, d'embeddings
+ou de base vectorielle sans décision explicite.
 
 ## Reprise recommandée
 
