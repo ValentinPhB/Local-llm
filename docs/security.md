@@ -75,5 +75,7 @@ techniques la démontrent.
   journal pour les décisions autorisées et refusées. La recherche ne journalise
   ni ses termes ni ses extraits. Un échec de stockage retourne `503`, afin de
   ne pas exposer de document, décision ACL ou résultat de recherche sans trace.
-- Le chat et le RAG ne sont pas encore journalisés.
+- Le chat simple `POST /api/chat` journalise aussi la décision d'appeler Ollama,
+  sans jamais journaliser son message ou la réponse. Si le journal échoue, le
+  message n'est pas envoyé à Ollama. Le RAG n'est pas encore journalisé.
 - Les journaux seront examinés sans y inscrire de données ou secrets réels.

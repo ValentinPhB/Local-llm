@@ -42,7 +42,7 @@ Ollama est démarrée ; l’API Python existe seulement pendant l’exécution d
 | `GET /api/access-check` | Retourne une décision ACL journalisée. | Ne lit pas de document. |
 | `GET /api/documents/<id>` | Lit un document autorisé. | Document seulement. |
 | `POST /api/retrieve` | Retourne des extraits autorisés après audit. | Documents autorisés seulement. |
-| `POST /api/chat` | Chat simple. | Ollama, sans document. |
+| `POST /api/chat` | Chat simple après audit. | Ollama, sans document. |
 | `POST /api/rag-chat` | Chat avec extraits autorisés. | Documents autorisés puis Ollama. |
 | `POST /api/logout` | Supprime le cookie côté navigateur. | Ni document ni Ollama. |
 
@@ -67,11 +67,11 @@ ni les modèles, ni la configuration d’Ollama.
 - La clé JWT est créée aléatoirement au démarrage et reste seulement en mémoire.
 - Les sessions expirent après 15 minutes et un redémarrage les invalide.
 - Les prompts et réponses ne sont pas journalisés par le serveur.
-- Les décisions de lecture directe, de vérification ACL et de recherche sont
-  écrites dans `.local/audit/access-decisions.jsonl`, hors Git, limité à 1 Mo
-  avec une sauvegarde et des permissions privées. Les termes de recherche et
-  les extraits ne sont pas journalisés. Les routes de chat et RAG ne le sont
-  pas encore.
+- Les décisions de lecture directe, de vérification ACL, de recherche et de
+  chat simple sont écrites dans `.local/audit/access-decisions.jsonl`, hors
+  Git, limité à 1 Mo avec une sauvegarde et des permissions privées. Les
+  termes de recherche, extraits, messages et réponses ne sont pas journalisés.
+  La route RAG ne l'est pas encore.
 - Les documents sont des fichiers Markdown fictifs versionnés dans Git.
 - Aucun index persistant, embedding, base vectorielle, conversation ou MCP n’existe.
 
@@ -84,16 +84,17 @@ ni les modèles, ni la configuration d’Ollama.
 5. Le récupérateur reçoit uniquement des identifiants déjà autorisés.
 6. Le chat RAG construit son contexte côté serveur, puis retourne les sources.
 7. Ollama ne reçoit jamais un chemin local, une ACL ou une permission.
-8. Une lecture documentaire, décision ACL ou recherche est journalisée avant
-   son retour ; si le journal est indisponible, l'opération est refusée.
+8. Une lecture documentaire, décision ACL, recherche ou chat simple est
+   journalisée avant son retour ; si le journal est indisponible, l'opération
+   est refusée.
 
 ## Limites connues et évolutions
 
 - L’identité est une simulation libre locale, non un SSO d’entreprise.
 - La recherche est lexicale ; elle ne comprend pas encore la similarité sémantique.
 - Le chat RAG limite le contexte à trois extraits de 500 caractères.
-- La journalisation active couvre la lecture directe, la vérification ACL et
-  la recherche, mais pas encore le chat ou le RAG.
+- La journalisation active couvre la lecture directe, la vérification ACL, la
+  recherche et le chat simple, mais pas encore le RAG.
 - Les documents restent fictifs.
 - Un futur MCP devra passer par une passerelle d’actions contrôlées ; Oscar ne
   pourra utiliser que des actions `read` explicitement enregistrées.

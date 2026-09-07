@@ -8,6 +8,7 @@ from unittest.mock import patch
 from audit.security_log import AuditStorageError, SecurityAuditLog
 from ui.server import (
     ACCESS_CHECK_AUDIT_ROUTE,
+    CHAT_AUDIT_ROUTE,
     DOCUMENT_AUDIT_ROUTE,
     RETRIEVAL_AUDIT_ROUTE,
     SESSION_COOKIE_NAME,
@@ -76,6 +77,11 @@ class LocalAPITests(unittest.TestCase):
         )
         self.assertEqual(status, 401)
         self.assertIn("Session", payload["error"])
+        event = json.loads(self.audit_output.getvalue().splitlines()[-1])
+        self.assertEqual(event["route"], CHAT_AUDIT_ROUTE)
+        self.assertEqual(event["outcome"], "denied")
+        self.assertIsNone(event["identity_id"])
+        self.assertNotIn("Bonjour", json.dumps(event, ensure_ascii=False))
 
     def test_chat_removes_thinking_trace_from_fake_ollama(self):
         headers = self.start_demo_session("alice")
@@ -86,6 +92,31 @@ class LocalAPITests(unittest.TestCase):
             )
         self.assertEqual(status, 200)
         self.assertEqual(payload["content"], "REPONSE-SURE")
+        event = json.loads(self.audit_output.getvalue().splitlines()[-1])
+        self.assertEqual(event["route"], CHAT_AUDIT_ROUTE)
+        self.assertEqual(event["outcome"], "allowed")
+        self.assertEqual(event["identity_id"], "alice")
+        serialized_event = json.dumps(event, ensure_ascii=False)
+        self.assertNotIn("Bonjour", serialized_event)
+        self.assertNotIn("REPONSE-SURE", serialized_event)
+
+    def test_chat_is_not_sent_to_ollama_when_audit_storage_is_unavailable(self):
+        headers = self.start_demo_session("alice")
+        with patch.object(
+            self.audit_log,
+            "record_access_decision",
+            side_effect=AuditStorageError("unavailable"),
+        ), patch("ui.server.urlopen") as ollama:
+            status, payload, _ = self.request(
+                "POST",
+                "/api/chat",
+                json.dumps({"message": "conversation privée"}),
+                {"Content-Type": "application/json", **headers},
+            )
+
+        self.assertEqual(status, 503)
+        self.assertIn("Journal", payload["error"])
+        ollama.assert_not_called()
 
     def test_session_is_signed_and_used_for_access_decision(self):
         headers = self.start_demo_session("alice")

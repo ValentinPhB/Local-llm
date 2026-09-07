@@ -97,10 +97,12 @@ Route : `POST /api/chat` avec `{"message":"…"}`.
 
 ```text
 1. API vérifie la session.
-2. API transmet uniquement le message à Ollama.
-3. Ollama produit une réponse.
-4. API retire une éventuelle trace Qwen jusqu’à </think>.
-5. API retourne la réponse à l’UI.
+2. API journalise l'autorisation d'appeler Ollama, sans message ni réponse.
+   Si le journal est indisponible : 503 ; le message ne quitte pas l'API.
+3. API transmet uniquement le message à Ollama.
+4. Ollama produit une réponse.
+5. API retire une éventuelle trace Qwen jusqu’à </think>.
+6. API retourne la réponse à l’UI.
 ```
 
 Le chat simple ne lit ni ne transmet aucun document.
