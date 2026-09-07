@@ -75,6 +75,10 @@ documents autorisés, retourne trois extraits bornés au maximum et ne contacte
 pas Ollama. La route RAG construit ensuite côté serveur le contexte Ollama avec
 ces seuls extraits et renvoie leurs identifiants de source.
 
+Les références à maintenir à chaque évolution sont
+`docs/current-request-flow.md` (séquence d’exécution) et
+`docs/local-api-detailed-architecture.md` (composants et frontières API).
+
 ## Prochaine étape approuvée
 
 Qualifer la génération augmentée avec le vrai modèle local : tester Oscar et

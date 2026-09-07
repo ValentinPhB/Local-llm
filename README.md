@@ -45,6 +45,10 @@ La conception de la récupération filtrée qui précédera le RAG est dans
 La génération augmentée prévue après cette récupération est définie dans
 [`docs/augmented-generation-design.md`](docs/augmented-generation-design.md).
 
+Le flux de requête et le détail des composants API sont dans
+[`docs/current-request-flow.md`](docs/current-request-flow.md) et
+[`docs/local-api-detailed-architecture.md`](docs/local-api-detailed-architecture.md).
+
 Le contrat de lecture seule prévu pour les futurs MCP est dans
 [`docs/mcp-authorization.md`](docs/mcp-authorization.md) ; aucun MCP n'est
 encore connecté.
