@@ -15,7 +15,7 @@ class RepositoryHygieneTests(unittest.TestCase):
                 json.loads(path.read_text(encoding="utf-8"))
 
     def test_internal_markdown_links_target_existing_files(self):
-        markdown_files = [ROOT / "README.md", ROOT / "STATUS.md", ROOT / "AGENTS.md"]
+        markdown_files = [ROOT / "README.md", ROOT / "STATUS.example.md", ROOT / "AGENTS.md"]
         markdown_files.extend((ROOT / "docs").glob("*.md"))
         for source in markdown_files:
             content = source.read_text(encoding="utf-8")

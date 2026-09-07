@@ -16,7 +16,7 @@ progressive, expliquée et vérifiable.
 
 ## Méthode de travail
 
-- Au début d'une reprise, lire `STATUS.md`, puis `AGENTS.md`, vérifier l'état Git et les services locaux avant toute modification.
+- Au début d'une reprise, lire `STATUS.md`, puis `AGENTS.md`, vérifier l'état Git et les services locaux avant toute modification. `STATUS.md` est local et ignoré par Git ; après un clonage, le créer depuis `STATUS.example.md`.
 - Si le message de l'utilisateur est exactement `hey` (sans autre demande), l'interpréter comme le prompt suivant : « Lis `STATUS.md` et `AGENTS.md`. Vérifie Git et Ollama, puis reprends la prochaine étape approuvée du LLM Security Lab. »
 - Expliquer l'objectif, l'impact, les risques et la vérification avant chaque changement significatif.
 - Limiter chaque étape à un changement cohérent et vérifier son résultat.

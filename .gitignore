@@ -14,3 +14,6 @@ secrets/
 .local/
 tmp/
 .DS_Store
+
+# Personal handoff notes for the local lab; never publish project progress.
+STATUS.md

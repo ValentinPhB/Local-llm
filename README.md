@@ -23,8 +23,10 @@ d'accès. Une évolution sémantique locale est conçue progressivement.
 Ollama et le modèle local `qwen3:4b` sont disponibles. L'interface minimale
 locale est accessible durant son exécution sur `http://127.0.0.1:3210`.
 
-Pour reprendre le projet après une interruption, consulter d'abord
-[`STATUS.md`](STATUS.md).
+Pour reprendre le projet après une interruption, consulter le fichier local
+`STATUS.md`. Il n'est volontairement pas versionné : après un clonage, créer
+ce fichier depuis [`STATUS.example.md`](STATUS.example.md), puis y conserver
+l'avancement propre à cette machine.
 
 Le rôle des deux API locales est décrit dans
 [`docs/local-api-detailed-architecture.md`](docs/local-api-detailed-architecture.md).
