@@ -13,6 +13,11 @@ Elle ne modifie pas Ollama : elle utilise son API native locale sur
 Navigateur -- 127.0.0.1:3210 --> API Python -- 127.0.0.1:11434 --> Ollama
 ```
 
+Les deux services sont limités à `127.0.0.1` : ils ne sont pas accessibles
+depuis le réseau local ou Internet. L’API Ollama existe dès que l’application
+Ollama est démarrée ; l’API Python existe seulement pendant l’exécution de
+`ui/server.py`.
+
 ## Composants
 
 | Fichier | Responsabilité |
@@ -40,6 +45,22 @@ Navigateur -- 127.0.0.1:3210 --> API Python -- 127.0.0.1:11434 --> Ollama
 | `POST /api/rag-chat` | Chat avec extraits autorisés. | Documents autorisés puis Ollama. |
 | `POST /api/logout` | Supprime le cookie côté navigateur. | Ni document ni Ollama. |
 
+Les routes `POST /api/chat` et `POST /api/rag-chat` acceptent un JSON contenant
+seulement `{"message":"…"}`. Un message absent, vide, non textuel ou trop
+long est refusé avec `400`. Les champs client supplémentaires comme `context`,
+`sources`, rôle ou chemin ne modifient jamais la sécurité ou le contexte RAG.
+
+## Relais vers Ollama
+
+L’API impose le modèle `qwen3:4b`, l’URL locale fixe
+`http://127.0.0.1:11434/api/chat`, `stream: false` et `think: false`. Après la
+réponse, elle retire tout contenu situé avant `</think>`, car Qwen peut ignorer
+la demande `think: false`. Elle retourne `502` si Ollama est indisponible ou si
+sa réponse est invalide.
+
+Ces adaptations appartiennent à notre API ; elles ne modifient ni les routes,
+ni les modèles, ni la configuration d’Ollama.
+
 ## État et données
 
 - La clé JWT est créée aléatoirement au démarrage et reste seulement en mémoire.
@@ -66,3 +87,13 @@ Navigateur -- 127.0.0.1:3210 --> API Python -- 127.0.0.1:11434 --> Ollama
 - Les documents restent fictifs.
 - Un futur MCP devra passer par une passerelle d’actions contrôlées ; Oscar ne
   pourra utiliser que des actions `read` explicitement enregistrées.
+
+## Démarrage et vérification
+
+```text
+python3 ui/server.py
+curl http://127.0.0.1:3210/healthz
+curl http://127.0.0.1:11434/api/version
+```
+
+Le premier contrôle vérifie l’API du laboratoire ; le second vérifie Ollama.

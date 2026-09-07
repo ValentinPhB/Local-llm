@@ -27,7 +27,7 @@ Pour reprendre le projet après une interruption, consulter d'abord
 [`STATUS.md`](STATUS.md).
 
 Le rôle des deux API locales est décrit dans
-[`docs/local-api-architecture.md`](docs/local-api-architecture.md).
+[`docs/local-api-detailed-architecture.md`](docs/local-api-detailed-architecture.md).
 
 La simulation locale d'un annuaire et d'un SSO est expliquée dans
 [`docs/demo-sso.md`](docs/demo-sso.md). Elle ne représente pas une connexion
