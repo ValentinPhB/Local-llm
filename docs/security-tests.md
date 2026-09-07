@@ -40,14 +40,14 @@ La politique fictive utilisée pour les scénarios `SEC-01` à `SEC-05` est
 définie dans [`access-control.md`](access-control.md) et
 `config/access-control/demo-policy.json`.
 
-## Interface locale minimale
+## Contrôles automatisés de l’interface
 
 | ID | Vérification | Résultat attendu |
 | --- | --- | --- |
-| UI-01 | `lsof -nP -iTCP:3210 -sTCP:LISTEN` | L'interface écoute exclusivement sur `127.0.0.1:3210`. |
-| UI-02 | `POST /api/chat` avec `{"message":42}` | Réponse `400`, sans appel au modèle. |
-| UI-03 | Message de test qui provoque une trace Qwen | La réponse visible ne contient ni la trace ni la balise `</think>`. |
-| UI-04 | Inspection du code et des journaux | Aucun prompt ou réponse n'est enregistré par le serveur. |
+| UI-01 | `test_server_is_bound_to_loopback` | L'API de test est liée exclusivement à `127.0.0.1`. |
+| UI-02 | `test_chat_without_session_is_rejected_before_ollama` | Requête refusée avant l'appel modèle. |
+| UI-03 | `test_chat_removes_thinking_trace_from_fake_ollama` | La réponse ne contient pas la trace `</think>`. |
+| UI-04 | Code de `LocalUIHandler.log_message` | Le serveur supprime les journaux HTTP applicatifs ; ce contrôle est revu avec le code. |
 | UI-05 | `POST /api/chat` sans cookie de session valide | Réponse `401`, sans appel à Ollama. |
 | UI-06 | Modification d'un caractère du cookie signé | `GET /api/session` retourne `401`. |
 | UI-07 | Session Alice, `GET /api/access-check?resource_id=rh-onboarding` | Réponse `200` avec `allowed: true`, sans contenu du fichier. |
@@ -81,6 +81,11 @@ vérifient aussi que les quinze chemins de politique existent réellement et que
 leur front matter correspond à la classification ACL, qu'un document autorisé
 est lu après ACL, qu'un document refusé n'est pas lu et qu'un identifiant de
 type chemin est rejeté.
+
+Le même ensemble est exécuté automatiquement par
+`.github/workflows/tests.yml` à chaque push sur `main` et à chaque pull request.
+Les tests utilisent un faux Ollama déterministe : la disponibilité, la vitesse
+ou le texte non déterministe du vrai modèle ne conditionnent jamais le succès.
 
 ## Preuves à conserver lors de l'exécution
 

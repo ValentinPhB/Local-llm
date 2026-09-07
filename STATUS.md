@@ -42,7 +42,7 @@ d'accès RBAC/ACL, récupération documentaire filtrée, puis LLM et MCP.
   est un contrat pour les futurs MCP approuvés : actions `read` explicitement
   enregistrées seulement ; toute autre action est refusée. Aucun MCP n'est
   installé à ce stade.
-- Tests validés : `python3 -m unittest discover -s tests -v` — 29 tests,
+- Tests validés : `python3 -m unittest discover -s tests -v` — 33 tests,
   incluant jeton falsifié/expiré, chat sans session et ACL Alice/RH/IT.
 
 ## À connaître au redémarrage
@@ -81,10 +81,10 @@ Les références à maintenir à chaque évolution sont
 
 ## Prochaine étape approuvée
 
-Qualifer la génération augmentée avec le vrai modèle local : tester Oscar et
-les autres identités, vérifier les sources affichées et l'absence de contenu RH
-ou IT pour Oscar. Ne pas ajouter de MCP, de donnée réelle, d'embeddings ou de
-base vectorielle.
+Étendre les contrôles automatisés de CI : validation de JSON, détection de
+secrets et vérification des liens Markdown, sans recette manuelle comme critère
+de qualité. Ne pas ajouter de MCP, de donnée réelle, d'embeddings ou de base
+vectorielle.
 
 ## Reprise recommandée
 

@@ -11,8 +11,9 @@ qualité, la sécurité, la compatibilité et le retour arrière ont été véri
 
 ## État actuel
 
-**Aucune CI/CD n'est encore configurée.** Le dépôt ne contient pas de workflow
-GitHub Actions et les tests actuels sont exécutés localement et manuellement.
+Une CI GitHub Actions est configurée dans `.github/workflows/tests.yml`. Elle
+exécute la suite Python déterministe à chaque push sur `main` et pull request.
+Elle ne déploie rien, ne télécharge aucun modèle et n'appelle pas Ollama.
 
 Ce document est la cible à atteindre avant de considérer le laboratoire comme
 reproductible. Il n'autorise aucun déploiement réseau ou cloud.
@@ -217,12 +218,10 @@ données ou modèles créés pendant la release.
 
 ## Plan d'implémentation CI/CD
 
-1. **Fait :** tests Python déterministes pour RBAC/ACL, SSO, documents et
-   lecteur contrôlé.
-2. Extraire l'appel Ollama derrière une interface testable et créer un faux
-   serveur Ollama pour les tests d'intégration.
-3. Ajouter un workflow GitHub Actions : validation, tests et détection de
-   secrets ; sans déploiement automatique.
+1. **Fait :** tests Python déterministes pour RBAC/ACL, SSO, documents,
+   lecteur, récupération et RAG.
+2. **Fait :** faux Ollama déterministe pour les contrats chat et RAG.
+3. **Fait :** workflow GitHub Actions de tests, sans déploiement automatique.
 4. Ajouter scans de dépendances, SBOM et politique de traitement des CVE dès
    qu'une dépendance, une image ou un MCP est introduit.
 5. Créer un manifeste et des notes de release, puis seulement un tag

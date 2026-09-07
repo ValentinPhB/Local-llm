@@ -18,6 +18,11 @@ class FakeOllamaResponse:
         return b'{"message":{"content":"RAG-OK"}}'
 
 
+class ThinkingOllamaResponse(FakeOllamaResponse):
+    def read(self):
+        return b'{"message":{"content":"raisonnement interne</think>REPONSE-SURE"}}'
+
+
 class LocalAPITests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -61,6 +66,16 @@ class LocalAPITests(unittest.TestCase):
         )
         self.assertEqual(status, 401)
         self.assertIn("Session", payload["error"])
+
+    def test_chat_removes_thinking_trace_from_fake_ollama(self):
+        headers = self.start_demo_session("alice")
+        with patch("ui.server.urlopen", return_value=ThinkingOllamaResponse()):
+            status, payload, _ = self.request(
+                "POST", "/api/chat", json.dumps({"message": "Bonjour"}),
+                {"Content-Type": "application/json", **headers},
+            )
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["content"], "REPONSE-SURE")
 
     def test_session_is_signed_and_used_for_access_decision(self):
         headers = self.start_demo_session("alice")
@@ -165,6 +180,9 @@ class LocalAPITests(unittest.TestCase):
         self.assertIn("public-welcome", sent)
         self.assertNotIn("RH interdit", sent)
         self.assertNotIn("rh-onboarding", sent)
+
+    def test_server_is_bound_to_loopback(self):
+        self.assertEqual(self.host, "127.0.0.1")
 
 
 if __name__ == "__main__":
