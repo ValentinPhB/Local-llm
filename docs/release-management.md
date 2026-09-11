@@ -49,8 +49,9 @@ Les extensions suivantes ne sont pas encore configurées :
    -> génération d'un SBOM pour les artefacts empaquetés
 
 2. RAG sémantique
-   -> Qdrant comme service CI et tests d'intégration automatisés
-   -> aucune recette manuelle comme condition de validation
+   -> Qdrant comme service CI éphémère et tests d'intégration automatisés
+   -> deux passages fictifs seulement ; aucune recette manuelle comme condition
+      de validation
 ```
 
 Une protection de branche peut ultérieurement imposer ces statuts avant fusion ;
@@ -213,7 +214,9 @@ données ou modèles créés pendant la release.
    lecteur, récupération, RAG, clients sémantiques et indexeur contrôlé.
 2. **Fait :** faux Ollama déterministe pour les contrats chat et RAG.
 3. **Fait :** workflow GitHub Actions de tests, sans déploiement automatique.
-4. Ajouter scans de dépendances, d'images, SBOM et politique de traitement des CVE dès
+4. **Fait dans le workflow, à confirmer après publication :** Qdrant éphémère
+   et test writer + filtre ACL réel, sans document du dépôt.
+5. Ajouter scans de dépendances, d'images, SBOM et politique de traitement des CVE dès
    qu'une dépendance, une image ou un MCP est introduit.
-5. Créer un manifeste et des notes de release, puis seulement un tag
+6. Créer un manifeste et des notes de release, puis seulement un tag
    `lab-v0.1.0` lorsque le RBAC est réellement appliqué et testé.

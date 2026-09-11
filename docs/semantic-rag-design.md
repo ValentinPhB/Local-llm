@@ -132,9 +132,11 @@ Avant activation, la CI doit démontrer automatiquement :
    avant toute lecture ou appel LLM ;
 7. question, vecteurs, passages et résultats ne sont jamais inscrits dans le
    journal d'audit ;
-8. une intégration Qdrant réelle s'exécute automatiquement dans GitHub Actions
-   avec un conteneur de service ; aucune recette manuelle ne constitue une
-   validation.
+8. **Fait dans le workflow, à confirmer après publication :** une intégration
+   Qdrant réelle s'exécute automatiquement dans GitHub Actions avec un
+   conteneur de service éphémère. Elle utilise deux passages fictifs, vérifie le
+   writer et prouve que le filtre d'Oscar ne renvoie que `public-welcome`.
+   Aucune recette manuelle ne constitue une validation.
 
 ## Références techniques
 

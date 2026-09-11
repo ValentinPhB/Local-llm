@@ -4,7 +4,8 @@ Toutes les données employées sont fictives. Les tests de session, RBAC, de
 cohérence des fichiers, lecture contrôlée, récupération lexicale et chat RAG
 sont automatisés. La recherche sémantique est couverte par des tests unitaires
 avec faux fournisseur d'embeddings et faux writer ; elle n'a pas de route API
-ni d'intégration Qdrant réelle à ce stade.
+ni de route API. La CI ajoute un conteneur Qdrant éphémère : le test y écrit
+deux passages fictifs et vérifie le filtre ACL réel.
 
 ## Identités et sources fictives actuelles
 
@@ -84,7 +85,8 @@ est lu après ACL, qu'un document refusé n'est pas lu et qu'un identifiant de
 type chemin est rejeté. Les tests de la couche sémantique vérifient en plus les
 destinations loopback imposées, le filtre Qdrant d'Oscar, le refus d'une liste
 ACL vide, le chunking borné, une politique invalide et l'absence d'écriture
-partielle.
+partielle. Dans GitHub Actions, l'intégration Qdrant vérifie aussi que le writer
+fonctionne contre le service réel et qu'Oscar ne récupère pas le passage RH.
 
 Le même ensemble est exécuté automatiquement par
 `.github/workflows/tests.yml` à chaque push sur `main` et à chaque pull request.

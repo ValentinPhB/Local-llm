@@ -12,6 +12,13 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      qdrant:
+        image: qdrant/qdrant:v1.19.1-unprivileged@sha256:801777072776dc81b2a9dd2007b2ed487571f21ecd30efffd15ddb1671f2193d
+        ports:
+          - 6333:6333
+    env:
+      RUN_QDRANT_INTEGRATION: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
