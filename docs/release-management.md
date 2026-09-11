@@ -214,8 +214,8 @@ données ou modèles créés pendant la release.
    lecteur, récupération, RAG, clients sémantiques et indexeur contrôlé.
 2. **Fait :** faux Ollama déterministe pour les contrats chat et RAG.
 3. **Fait :** workflow GitHub Actions de tests, sans déploiement automatique.
-4. **Fait dans le workflow, à confirmer après publication :** Qdrant éphémère
-   et test writer + filtre ACL réel, sans document du dépôt.
+4. **Fait et validé par la CI GitHub Actions du commit `d40d318` :** Qdrant
+   éphémère et test writer + filtre ACL réel, sans document du dépôt.
 5. Ajouter scans de dépendances, d'images, SBOM et politique de traitement des CVE dès
    qu'une dépendance, une image ou un MCP est introduit.
 6. Créer un manifeste et des notes de release, puis seulement un tag
