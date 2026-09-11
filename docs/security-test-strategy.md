@@ -48,8 +48,9 @@ plusieurs cas chacun ; un nombre de tests ne mesure pas à lui seul la sécurit�
 
 ## Limites
 
-Un succès local n’est pas un succès CI distant. Les nouvelles configurations
-de workflow doivent encore être exécutées sur le commit publié.
+Un succès local n’est pas un succès CI distant. Vérifier le workflow du commit
+livré dans [GitHub Actions](https://github.com/ValentinPhB/ChatPurp/actions/workflows/tests.yml) :
+un ancien résultat vert ne qualifie pas un changement ultérieur.
 Les tests ne constituent ni un pentest exhaustif ni une preuve d’inviolabilité
 du sandbox OS. Les tests déterministes de chat ne prouvent pas la factualité
 du modèle réel. Les contrôles Host/Origin ne résistent pas à un programme local

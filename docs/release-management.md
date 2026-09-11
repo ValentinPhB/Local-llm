@@ -132,6 +132,13 @@ depuis son terminal. Ne pas utiliser de kill global sur Python, Rust ou Ollama.
 [Workflow](../.github/workflows/tests.yml) exécuté sur push/PR vers main,
 permissions GitHub en lecture minimale :
 
+Les actions sont verrouillées par commit : checkout 7.0.1, setup-node 7.0.0,
+Gitleaks Action 3.0.0. Leurs moteurs Node 24 sont distincts du Node 22.23.2
+utilisé pour nos tests. Identifiants Git non persistés et cache npm automatique
+désactivé. Références officielles : [checkout](https://github.com/actions/checkout/releases/tag/v7.0.1),
+[setup-node](https://github.com/actions/setup-node/releases/tag/v7.0.0),
+[Gitleaks](https://github.com/gitleaks/gitleaks-action/releases/tag/v3.0.0).
+
 - Contrats SpecDD : installation verrouillée, audit, lint, tests.
 - Rust sur macOS 26 ARM64 : installations vérifiées, audit des dépendances,
   build natif/WASM, tests HTTP/filesystem puis vrais parcours Chromium.

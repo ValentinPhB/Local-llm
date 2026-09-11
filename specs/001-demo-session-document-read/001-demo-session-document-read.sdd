@@ -1,5 +1,5 @@
 Spec: SPEC-001 — Session de démonstration et lecture documentaire autorisée
-# Statut : implémentation et bascule Rust vérifiées localement ; CI distante à finaliser.
+# Statut : version Rust implémentée, basculée et publiée ; preuve CI rattachée à chaque commit dans GitHub Actions.
 # Syntaxe : langage SpecDD 1.2, référence framework 1.5.
 
 Purpose:
@@ -88,7 +88,7 @@ Tasks:
   [x] Qualifier les bibliothèques, compiler le workspace natif/WASM et vérifier les graphes.
   [x] Implémenter sessions, ACL, lecture contrôlée et audit avec preuves automatisées.
   [x] Vérifier les parcours sur le véritable parseur HTTP et l'interface Dioxus compilée.
-  [ ] Finaliser bascule autorisée, nettoyage documentaire et publication avec CI distante vérifiée.
+  [x] Effectuer la bascule autorisée, nettoyer le dépôt et publier l'application avec son workflow de qualification.
 
 Done when:
   SES-01: Création pour les quatre identités, refus d'un identifiant inconnu et d'un corps invalide

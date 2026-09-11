@@ -88,8 +88,12 @@ preuves de non-régression utiles.
 
 | Spécification | Périmètre | État |
 | --- | --- | --- |
-| [SPEC-001](001-demo-session-document-read/001-demo-session-document-read.sdd) | Session, lecture et audit ; 14 paires exigence/preuve. | Implémentation locale testée ; livraison à finaliser. |
-| [SPEC-002](002-chat-and-retrieval/002-chat-and-retrieval.sdd) | Chat, RAG lexical, capacités sémantiques préparées ; 7 paires. | Implémentation locale testée ; livraison à finaliser. |
+| [SPEC-001](001-demo-session-document-read/001-demo-session-document-read.sdd) | Session, lecture et audit ; 14 paires exigence/preuve. | Implémentée, basculée et publiée ; CI par commit. |
+| [SPEC-002](002-chat-and-retrieval/002-chat-and-retrieval.sdd) | Chat, RAG lexical, capacités sémantiques préparées ; 7 paires. | Implémentée et publiée ; CI par commit. |
+
+La qualification distante d'une version est le résultat de son exécution
+[GitHub Actions](https://github.com/ValentinPhB/ChatPurp/actions/workflows/tests.yml),
+pas celui d'un commit précédent. Aucun succès permanent n'est présumé par ce tableau.
 
 Le [plan](001-demo-session-document-read/plan.md) décrit les contrats retenus,
 pas un historique de sondes. Les [preuves](../docs/security-test-strategy.md)
