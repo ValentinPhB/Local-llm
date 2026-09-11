@@ -6,7 +6,7 @@ Depuis le 11 septembre 2026, le laboratoire évolue par spécifications (SDD),
 avec des responsabilités métier explicites (DDD), vers du code applicatif Rust.
 La décision et ses limites sont dans
 [ADR-0001](../docs/decisions/0001-rust-sdd-and-deployment-boundaries.md).
-L'application exécutée reste actuellement en Python.
+Le workspace Rust est implémenté, testé et utilisé après bascule locale approuvée.
 
 Le pilote utilise maintenant le format `.sdd` de SpecDD. La syntaxe de
 référence et les versions sont documentées dans
@@ -25,9 +25,11 @@ comportement à réaliser, sans prétendre attribuer les fichiers Rust à venir.
 Chaque étape porte sur un changement cohérent. Expliquer le besoin, les choix
 et les preuves attendues ; laisser à l'utilisateur les arbitrages métier.
 L'objectif est sa montée en compétence : présenter les notions et les fichiers
-avant d'agir, expliquer le résultat avec un exemple du lab, puis lui laisser
-la main avant la prochaine étape pédagogique. Une suite d'exécutions suivie
-d'un compte rendu final ne remplace pas cet accompagnement.
+avant d'agir et expliquer le résultat avec un exemple du lab. Depuis la demande
+d'exécution continue du 2026-09-11, enchaîner les étapes du périmètre convenu
+avec tests et corrections, points d'avancement puis rapport pédagogique final.
+Les nouveaux arbitrages métier, droits, connexions et bascules actives restent
+explicites ; l'autonomie ne permet pas d'élargir silencieusement le périmètre.
 Son accord sur la direction ne signifie pas que tous les détails futurs sont
 déjà validés. Préparer des propositions concrètes, signaler les ambiguïtés et
 tenir compte des décisions déjà prises sans redemander les mêmes accords.
@@ -82,19 +84,18 @@ Un changement de comportement commence par la mise à jour de sa spec ; un
 correctif rétablissant le contrat existant conserve ce contrat et ajoute les
 preuves de non-régression utiles.
 
-## Première fonctionnalité
+## Contrats en cours
 
-| Spécification | Statut | Implémentation Rust |
+| Spécification | Périmètre | État |
 | --- | --- | --- |
-| [001 — Session de démonstration et lecture autorisée](001-demo-session-document-read/001-demo-session-document-read.sdd) | Contrat proposé ; conversion SpecDD validée localement | Non commencée |
+| [SPEC-001](001-demo-session-document-read/001-demo-session-document-read.sdd) | Session, lecture et audit ; 14 paires exigence/preuve. | Implémentation locale testée ; livraison à finaliser. |
+| [SPEC-002](002-chat-and-retrieval/002-chat-and-retrieval.sdd) | Chat, RAG lexical, capacités sémantiques préparées ; 7 paires. | Implémentation locale testée ; livraison à finaliser. |
 
-Les 13 identifiants sont conservés dans `Must` (exigences) et `Done when`
-(preuves attendues). Les contrôles de l'outillage vérifient la syntaxe,
-la découverte, les références et cette correspondance, y compris des cas
-invalides. Trois tests supplémentaires vérifient le traitement de l'audit des
-dépendances, soit huit tests de l'outillage au total. Ils ne prouvent pas encore
-la conformité de l'application Rust.
-Les statuts locaux ne valent pas exécution réussie du job GitHub Actions.
+Le [plan](001-demo-session-document-read/plan.md) décrit les contrats retenus,
+pas un historique de sondes. Les [preuves](../docs/security-test-strategy.md)
+et l'[installation/CI](../docs/release-management.md) complètent les .sdd.
+Les anciennes solutions ne sont pas conservées comme archives dans le dépôt.
+Les capacités préparées ne sont pas présentées comme des routes activées.
 
 ## Vocabulaire commun
 

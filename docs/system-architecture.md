@@ -1,84 +1,58 @@
-# Architecture du système
+# Architecture générale de ChatPurp
 
-Cette page décrit l'application Python existante. La cible Rust acceptée,
-encore non implémentée, est définie dans
-[ADR-0001](decisions/0001-rust-sdd-and-deployment-boundaries.md).
-La migration commence par [SPEC-001](../specs/001-demo-session-document-read/001-demo-session-document-read.sdd).
+## Périmètre
 
-## Vue d'ensemble
+Laboratoire local sur Mac Apple Silicon, 16 Gio de RAM. Le code applicatif
+propre au lab est en Rust : interface, règles métier, API et indexeur.
+Ollama, ses modèles, Qdrant et le navigateur restent des logiciels externes.
+« Full Rust » ne signifie pas réécrire ces logiciels : HTML/CSS et le
+JavaScript de liaison de WebAssembly restent nécessaires.
 
-```text
-Utilisateur
-    |
-    v
-Interface locale minimale du projet
-  - choix explicite d'une identité fictive (mode simulation)
-  - cookie de session signé et court
-    |
-    v
-API locale du laboratoire
-  - vérification du jeton et traduction groupes -> rôles
-  - RBAC/ACL sur 15 documents fictifs classifiés
-  - lecteur documentaire après ACL uniquement
-  - récupération lexicale après ACL
-  - chat RAG : contexte construit côté serveur
-  - couche sémantique préparée, mais non activée
-    |
-    | message seul ou message + extraits autorisés
-    v
-Ollama (API locale)
-    |
-    v
-Modèle local sur Apple Silicon
-```
+La version Rust remplace le service Python après bascule approuvée et tests.
+Le port applicatif est 3211 ; aucun service du projet n'utilise désormais 3210.
 
-## Responsabilités et frontières
+## Composants et ports
 
-| Couche | Responsabilité | Ne doit pas faire |
+| Composant | Technologie | Adresse / rôle |
 | --- | --- | --- |
-| Interface locale | Présenter l'interface et transmettre un message à l'API locale | Gérer des droits, choisir des documents ou fournir des outils au modèle |
-| Simulation SSO locale | Émettre un jeton signé pour une identité fictive choisie explicitement | Prouver une identité réelle ou remplacer un IdP d'entreprise |
-| API du laboratoire | Vérifier la session, traduire les groupes en rôles et appliquer l'ACL | Croire une identité libre envoyée avec un chat, ou déléguer un droit au LLM |
-| Lecteur documentaire | Lire un fichier explicitement autorisé et déclaré par la politique | Accepter un chemin client ou lire avant l'ACL |
-| Récupération lexicale | Classer des extraits parmi les documents déjà autorisés | Lire ou classer un document non autorisé |
-| Génération augmentée active | Ajouter au prompt uniquement des extraits récupérés et autorisés | Accepter un contexte fourni par le navigateur ou un extrait non filtré |
-| Couche sémantique préparée | Préparer embeddings, filtre Qdrant et indexation par politique | Écrire dans Qdrant ou servir des requêtes avant activation explicite |
-| Future passerelle MCP | Autoriser une action déclarée pour un MCP approuvé | Donner un accès implicite à un MCP ou à une action inconnus |
-| Ollama | Exécuter localement l'inférence et servir son API | Gérer les droits applicatifs ou exposer l'API hors de la machine |
-| LLM | Produire une réponse à partir du prompt et du contexte reçus | Accéder directement au filesystem, décider des permissions ou utiliser des credentials d'administration |
+| Interface | Dioxus 0.7.10 → WebAssembly | Servie par la même origine que l’API, sans serveur frontend séparé. |
+| API | Rust 1.98.1, Axum 0.8.9, Hyper 1.11.1, Tokio 1.53.1 | Écoute fixe 127.0.0.1:3211 ; sessions, ACL, lecture, recherche, chat. |
+| Génération | Ollama 0.33.3, qwen3:4b | 127.0.0.1:11434 ; seul le serveur l’appelle. |
+| Embeddings préparés | Ollama, embeddinggemma | Même serveur, endpoint /api/embed ; hors routes actives. |
+| Base vectorielle préparée | Qdrant v1.19.1-unprivileged, image par digest | 127.0.0.1:6333 ; aucune indexation du lab exécutée pendant la migration. |
+| Indexeur administratif | Binaire Rust chatpurp-index | Aucun port ; plan hors réseau ou remplacement explicitement demandé. |
+| Tests navigateur | Node 22.23.2, Puppeteer Core 25.10.0, Chromium 153.0.8010.36 | Outils de développement dédiés, pas des services applicatifs. |
 
-## Flux RAG actif
+## Dépendances internes
 
-```text
-Question de l'utilisateur
-    -> jeton d'identité vérifié (simulation locale aujourd'hui, OIDC demain)
-    -> RBAC / ACL déterministes
-    -> recherche dans les sources autorisées
-    -> passages autorisés uniquement
-    -> contexte envoyé au LLM
-    -> réponse
-```
+~~~text
+chatpurp-web ──→ chatpurp-contracts
+chatpurp-api ──→ chatpurp-core
+             └→ chatpurp-contracts
+~~~
 
-Les instructions d'un utilisateur ou d'un document ne modifient jamais les
-permissions. Un prompt injection peut influencer le texte généré, mais ne doit
-pas permettre de contourner le filtre d'autorisation technique.
+Le core porte les règles et des interfaces de dépendances injectées. Il ne
+dépend ni de HTTP, ni d’Ollama, ni de rustix. L’API implémente ces interfaces.
+Le frontend ne reçoit ni la politique complète ni une clé de signature.
+Un test vérifie le graphe réel de compilation WASM : aucun paquet serveur
+JWT, filesystem natif ou API n’y est joignable.
 
-La conception détaillée de cette frontière est conservée dans
-[`authorization-security-boundary.md`](authorization-security-boundary.md). Le
-contrat de la simulation SSO est dans
-[`demo-sso-authentication.md`](demo-sso-authentication.md). La récupération
-lexicale active est définie dans
-[`lexical-rag-retrieval.md`](lexical-rag-retrieval.md).
+L’API et l’indexeur partagent la crate native mais constituent deux exécutables.
+Cette séparation évite une route d’indexation exposée au navigateur ; elle ne
+sépare pas les permissions du compte macOS. Plusieurs dépôts ou microservices
+n’apporteraient pas automatiquement davantage de sécurité.
 
-## Limites initiales
+## Ressources locales
 
-- L'interface et l'API du lab écoutent sur `127.0.0.1:3210`; Ollama écoute sur
-  `127.0.0.1:11434` et Qdrant sur `127.0.0.1:6333`.
-- Le navigateur parle à l'API du lab, jamais directement à Ollama ou Qdrant.
-- Le LLM ne recevra aucun montage direct du filesystem du Mac.
-- Quinze documents de démonstration fictifs sont versionnés dans le dépôt,
-  classifiés et référencés par une ACL ; ils sont lus seulement après ACL et
-  peuvent être transmis à Ollama uniquement comme extraits lexicaux autorisés
-  par `POST /api/rag-chat`.
-- Qdrant est vide : aucun index vectoriel persistant n'est encore alimenté.
-- Aucun MCP, outil externe ou credential n'est prévu à ce stade.
+Compilation séquentielle (CARGO_BUILD_JOBS=1). L’API accepte au plus seize
+connexions simultanées et un seul appel de génération à la fois, sans file
+illimitée de prompts. qwen3:4b occupe environ 2,5 Go sur disque ; les mesures
+antérieures d’inférence étaient d’environ 3,2 Go, pas une limite garantie.
+Le modèle d’embeddings occupe environ 621 Mo sur disque.
+
+La toolchain, les builds, navigateurs, caches et audits résident dans .local,
+hors Git. Un build n’est pas un modèle ; un cache disque n’est pas une
+consommation permanente de RAM. Aucune exposition LAN, aucun cloud, aucun MCP.
+
+Voir le [flux](api-request-flow.md), les [modules](local-api-architecture.md)
+et l’[exploitation](release-management.md).

@@ -1,34 +1,25 @@
-# Documentation du LLM Security Lab
+# ChatPurp — documentation
 
-Ce dossier décrit le laboratoire par sujet. Le flux réellement actif reste la
-référence ; les documents « futur » décrivent une étape non activée.
+L’application Rust remplace la version Python, sur le port local 3211.
+Les guides décrivent la version Rust ; l’état des processus et les résultats de la séance restent
+dans STATUS.md, local et ignoré.
 
-La direction Rust/SDD est acceptée, son implémentation n'a pas commencé.
-Les comportements attendus et leur statut sont dans
-[l'index des spécifications](../specs/README.md) ; les guides ci-dessous
-décrivent l'existant et identifient explicitement les éléments futurs.
-
-| Document | Contenu |
+| Guide | Contenu |
 | --- | --- |
-| [ADR-0001](decisions/0001-rust-sdd-and-deployment-boundaries.md) | Décision Rust/SDD : dépôt unique, frontières métier et cible d'exécution. |
-| [ADR-0002](decisions/0002-specdd-contract-pilot.md) | Pilote `.sdd` : format SpecDD, validation et limites d'adoption. |
-| [Validation SpecDD](../tools/specdd/README.md) | Versions verrouillées, installation et contrôles automatisés des contrats. |
-| [system-architecture.md](system-architecture.md) | Vue d'ensemble des composants et frontières. |
-| [local-api-architecture.md](local-api-architecture.md) | Routes, données et responsabilités de l'API Python. |
-| [api-request-flow.md](api-request-flow.md) | Séquence exacte d'une requête, de l'UI à Ollama. |
-| [demo-sso-authentication.md](demo-sso-authentication.md) | Simulation d'identité et de session signée. |
-| [rbac-acl-policy.md](rbac-acl-policy.md) | Rôles, ACL et matrice Alice/Bob/Charlie/Oscar. |
-| [controlled-document-access.md](controlled-document-access.md) | Lecture de fichiers après ACL et confinement des chemins. |
-| [demo-document-catalog.md](demo-document-catalog.md) | Les 15 documents fictifs et leurs classifications. |
-| [lexical-rag-retrieval.md](lexical-rag-retrieval.md) | Recherche lexicale active, filtrée par ACL. |
-| [rag-generation-flow.md](rag-generation-flow.md) | Chat RAG actif et contexte construit côté serveur. |
-| [semantic-rag-design.md](semantic-rag-design.md) | Couche vectorielle préparée et testée avec faux services, non encore activée. |
-| [authorization-security-boundary.md](authorization-security-boundary.md) | Règles d'autorisation actuelles et futures. |
-| [security-requirements.md](security-requirements.md) | Exigences réseau, données, audit et privilèges. |
-| [security-test-strategy.md](security-test-strategy.md) | Scénarios et preuves de sécurité automatisées. |
-| [release-management.md](release-management.md) | CI, livraisons locales et retour arrière. |
-| [installation-and-local-services.md](installation-and-local-services.md) | Journal d'installation et services locaux. |
-| [mcp-authorization-contract.md](mcp-authorization-contract.md) | Contrat minimal avant tout MCP futur. |
+| [Architecture générale](system-architecture.md) | Composants, langages, ports et dépendances. |
+| [Architecture de l’API](local-api-architecture.md) | Modules Rust, responsabilités, contrats HTTP et erreurs. |
+| [Flux des requêtes](api-request-flow.md) | Ordre précis des contrôles et circulation des données. |
+| [Sécurité et droits](security-requirements.md) | Sessions fictives, matrice ACL, lecture, audit et limites. |
+| [Catalogue documentaire](demo-document-catalog.md) | Les quinze fichiers et leurs classifications. |
+| [Recherche et indexation](semantic-rag-design.md) | RAG lexical effectif ; adaptateurs sémantiques préparés. |
+| [Installation et release management](release-management.md) | Installation de chaque brique, CI, tests, livraison et retour arrière. |
+| [Preuves automatisées](security-test-strategy.md) | Exigences reliées aux tests et limites des preuves. |
+| [Décision d’architecture](decisions/0001-rust-sdd-and-deployment-boundaries.md) | Dépôt unique, API modulaire, Dioxus et indexeur séparé. |
+| [Décision SpecDD](decisions/0002-specdd-contract-pilot.md) | Format .sdd, validation et portée du pilote. |
+| [Contrats SDD](../specs/README.md) | SPEC-001 et SPEC-002 ; méthode d’évolution. |
+| [Outillage navigateur](../tools/browser-tests/README.md) | Versions, contrôle des binaires et tests réels. |
+| [Export OneNote](../tools/export-onenote.mjs) | Génère un HTML autonome et deux PNG à partir des guides courants, dans .local. |
 
-`STATUS.md`, à la racine du dépôt, est un état de reprise local ignoré par Git.
-Il ne fait pas partie de cette documentation versionnée.
+Pas de README racine à la demande de l’utilisateur. Aucun dossier d’archives
+n’est nécessaire : les décisions expliquent les choix retenus, Git conserve
+les versions publiées précédentes.

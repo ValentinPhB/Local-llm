@@ -1,150 +1,76 @@
-# RAG sémantique contrôlé — conception approuvée
+# Recherche, RAG et indexeur contrôlé
 
-Le raccordement à l'API est différé pendant la première tranche de migration
-Rust décrite dans [SPEC-001](../specs/001-demo-session-document-read/001-demo-session-document-read.sdd).
-La conception et les composants Python préparés ci-dessous sont conservés ;
-ils ne décrivent pas une implémentation Rust ni une activation nouvelle.
+## État
 
-## État et objectif
+Le RAG raccordé à l’API Rust est lexical. Les capacités sémantiques préparées
+sont également portées en Rust, mais ni indexation du lab ni route sémantique
+n’ont été activées. Qdrant et embeddinggemma restent des dépendances locales
+préparées. Les tests utilisent des doubles et un Qdrant éphémère isolé.
 
-Le RAG actuellement actif est lexical : il compte les mots communs entre une
-question et les documents déjà autorisés. Cette conception décrit son évolution
-vers une recherche sémantique locale, capable de rapprocher des formulations de
-sens voisin sans confier les droits d'accès au modèle.
+## Récupération lexicale
 
-Le choix approuvé est `embeddinggemma` dans Ollama et Qdrant comme base
-vectorielle locale. `embeddinggemma` est installé localement et son endpoint
-Ollama a produit un vecteur de contrôle pour une phrase fictive. Qdrant est
-démarré mais reste vide. Les adaptateurs `semantic_retrieval/clients.py` et
-l'indexeur contrôlé `semantic_retrieval/indexer.py` et le writer Qdrant existent
-et sont testés avec des services simulés ; aucune route API ne les appelle
-encore. Aucun document n'est indexé. La récupération lexicale et le chat RAG
-existants restent donc la référence active.
+Après session valide et audit, le core calcule la liste des ressources
+autorisées, puis lit seulement ces fichiers. Le front matter ne participe pas
+au classement. Les mots Unicode alphanumériques ou avec underscore, d’au moins
+deux caractères, sont mis en minuscules ; score = nombre de termes distincts
+communs. Tri par score décroissant puis resource_id croissant.
+Au plus trois extraits, espaces normalisés, 500 caractères chacun.
 
-## Composants retenus
+Une requête de recherche contient 1 à 500 caractères après trim.
+Le chat RAG accepte le message jusqu’à 8000 caractères et ne lui applique pas
+la limite de la route de recherche. Le contexte serveur cite les ressources
+et présente leurs passages comme des données, jamais des instructions.
+Le navigateur ne peut imposer ni contexte, ni sources, ni modèle, ni destination.
 
-| Composant | Responsabilité | Frontière |
-| --- | --- | --- |
-| Ollama `embeddinggemma` | Produit les vecteurs des passages et questions via `/api/embed`. | `127.0.0.1:11434`, jamais appelé par le navigateur. |
-| Qdrant `qdrant/qdrant:v1.19.1-unprivileged` | Stocke les vecteurs et le texte des passages fictifs ; recherche les plus proches. | Conteneur ARM64, port REST publié seulement sur `127.0.0.1:6333`. |
-| API Python | Applique session, RBAC/ACL, filtre Qdrant, bornage, audit et relais LLM. | Seul composant qui parle à Qdrant ou Ollama. |
+## Embeddings et recherche vectorielle préparés
 
-`embeddinggemma` occupe environ 622 Mo sur disque et convient à la recherche
-multilingue locale. Qdrant tourne sous l'utilisateur `1000:1000`, avec un
-volume Docker nommé dédié, jamais le répertoire personnel, la racine du système
-ou le socket Docker. Il est limité à 1 Go de RAM et publié seulement sur
-`127.0.0.1:6333`. Avec les quinze documents fictifs, les vecteurs occuperont un
-espace négligeable face au modèle.
+Un embedding représente un texte par une liste de nombres ; la dimension
+est produite par le modèle, pas par Qdrant. L’adaptateur impose embeddinggemma,
+le port 11434 et /api/embed : texte ≤ 8000 caractères, délai 30 s, réponse
+≤ 256 KiB. Un seul vecteur est attendu, de 1 à 4096 coordonnées finies.
 
-## Flux cible, non négociable
+La recherche Qdrant utilise le port 6333, la collection lab_semantic_documents
+et /points/query. Le filtre obligatoire est resource_id parmi les ressources
+autorisées côté serveur. Une liste vide produit zéro appel réseau.
+Délai 5 s, réponse ≤ 256 KiB, au plus trois résultats ; le payload est revérifié
+contre l’identifiant ET la classification de la politique. Extraits ≤ 500 caractères.
+Un retour hors ACL ou mal formé invalide toute la réponse.
 
-```text
-Indexation contrôlée, déclenchée localement
-document fictif déclaré dans la politique
--> découpage en passages bornés
--> embedding local de chaque passage
--> Qdrant : vecteur + resource_id + classification + passage
+## Découpage et indexation administrative
 
-Question sémantique
--> session vérifiée
--> groupes -> rôles -> liste des resource_id ACL autorisés
--> embedding local de la question
--> Qdrant avec filtre serveur resource_id IN [liste autorisée]
--> au plus trois passages autorisés
--> API ou contexte RAG Ollama
-```
+Le binaire chatpurp-index est distinct du serveur HTTP. Il prend des identifiants
+déclarés, pas des chemins client. La préparation valide toute la liste avant
+lecture, utilise le lecteur contrôlé et retire les métadonnées.
+Découpage paragraphes/phrases, maximum 700 caractères ; dernière unité
+réutilisée si ≤ 160 caractères ET si elle tient avec l’unité suivante.
+Une phrase exceptionnellement longue est coupée au dernier espace disponible,
+sinon à une frontière de caractère Unicode.
 
-Le navigateur ne fournit jamais le filtre, un vecteur, un `resource_id`, une
-source ou un passage. Qdrant ne constitue pas une source d'autorisation : son
-filtre est construit par l'API après ACL. Le LLM ne reçoit aucun vecteur, accès
-Qdrant, chemin local ou document hors résultat filtré.
+Ce découpage est déterministe, pas une compréhension linguistique parfaite :
+abréviations, tableaux et titres peuvent justifier un futur découpeur spécialisé.
+Les tests contrôlent les bornes, le recouvrement et les mots Unicode longs.
 
-## Indexeur contrôlé déjà présent, non encore connecté
+Le lot complet est préparé puis vectorisé ; 512 passages maximum, dimensions
+homogènes, coordonnées finies, classifications PUBLIC/RH/IT, couples
+(resource_id, chunk_id) uniques. Aucune écriture Qdrant avant validation du lot.
+Les identifiants de points sont des UUID v5 déterministes, compatibles avec
+le namespace initial. SHA-1 sert ici à l’identification, pas à signer une donnée.
 
-`ControlledIndexer` ne prend que des `resource_id` déclarés dans la politique,
-jamais des chemins envoyés par un utilisateur. Il relit chaque document avec
-`read_policy_document`, qui contrôle le répertoire, la taille et les métadonnées
-de front matter. Il retire ensuite ces métadonnées du texte recherché, découpe
-le corps en paragraphes puis en phrases, et limite un passage à 700 caractères.
-Quand un passage suivant ne tient plus, la dernière phrase du précédent est
-réutilisée si elle fait au plus 160 caractères : le contexte reste lisible sans
-dépasser la limite. Une phrase exceptionnellement trop longue est coupée au
-dernier espace possible.
+## Deux modes explicites
 
-Le fournisseur d'embeddings et le writer sont injectés. L'indexeur construit
-donc d'abord un lot complet et cohérent (vecteurs finis, mêmes dimensions), puis
-le remet une seule fois au writer. Pour l'instant, les tests injectent seulement
-un faux fournisseur et un faux writer : aucune écriture Qdrant ne peut être
-déclenchée par ce code. L'ACL de chaque utilisateur est toujours appliquée plus
-tard, lors de la requête de recherche ; l'indexation est un travail
-administratif local sur les documents explicitement déclarés.
+~~~sh
+# Lecture/plan seulement : aucun embedding, aucune écriture réseau.
+.local/rust/target/aarch64-apple-darwin/debug/chatpurp-index --plan "$PWD" public-welcome
+~~~
 
-Le writer `QdrantIndexWriter` cible exclusivement la collection fixe
-`lab_semantic_documents` sur `127.0.0.1:6333`. Il valide le lot avant tout
-appel, rejette les classifications, dimensions et chunks invalides, puis
-reconstruit cette seule collection avec des identifiants de points déterministes.
-Cette reconstruction est par nature destructive pour **cette collection de
-démonstration** ; elle ne sera jamais appelée par une route utilisateur. Pour
-l'instant, elle est testée avec un faux Qdrant et aucun code ne l'instancie pour
-écrire dans le conteneur réel.
+Le mode --replace-lab-index est administratif et destructif pour la seule
+collection lab_semantic_documents : suppression (404 admis si déjà absente),
+création Cosine avec la dimension validée, insertion du lot avec wait=true.
+Il n’a pas été exécuté contre le lab. Une panne entre ces opérations peut
+laisser la collection absente ou partielle : il n’y a pas de remplacement
+transactionnel ni de retour arrière automatique.
 
-## Données indexées et rétention
-
-Chaque point Qdrant contiendra uniquement : `resource_id`, `classification`,
-`chunk_id`, texte du passage et vecteur. Les quinze documents sont fictifs,
-mais ce même contenu deviendrait sensible avec de vraies données : la base doit
-donc rester locale et son volume Docker ne sera pas versionné dans Git.
-
-L'indexation reconstruira la collection de démonstration de manière
-déterministe. Un changement de document, de découpage ou de modèle impose une
-réindexation complète ; mélanger les vecteurs issus de modèles différents est
-interdit.
-
-## Déploiement progressif et repli
-
-La première version introduira une route sémantique distincte, sans modifier
-`POST /api/retrieve` ni `POST /api/rag-chat`. Elle permettra de comparer les
-résultats sans changement silencieux du comportement actuel. Une indisponibilité
-d'Ollama embeddings ou de Qdrant renverra `503` : aucun repli implicite vers la
-recherche lexicale, aucun document et aucun message ne seront envoyés au LLM.
-
-Une évolution ultérieure, explicitement décidée, pourra faire utiliser le
-rétrieval sémantique par le RAG. Elle mettra alors à jour le flux de requête.
-
-## État de la couche cliente
-
-`semantic_retrieval/clients.py` fixe les deux seules destinations réseau :
-`127.0.0.1:11434/api/embed` pour Ollama et `127.0.0.1:6333` pour Qdrant. Il
-valide les vecteurs, interdit une liste ACL vide de devenir une recherche globale
-et rejette une ressource renvoyée par Qdrant qui ne figure pas dans le filtre
-autorisé. `QdrantIndexWriter` ajoute l'écriture administrative isolée : son nom
-de collection est imposé, l'URL reste loopback et il n'est pas importé par
-`ui/server.py`.
-
-## Contrôles automatisés obligatoires
-
-Avant activation, la CI doit démontrer automatiquement :
-
-1. un faux fournisseur d'embeddings déterministe permet des tests sans Ollama ;
-2. l'indexeur refuse une politique ACL invalide ou un identifiant hors politique
-   avant tout embedding ou toute écriture ;
-3. le découpage conserve les fins de phrase, respecte la taille maximale et
-   produit un chevauchement borné ;
-4. les requêtes Qdrant reçoivent exactement le filtre `resource_id` construit
-   depuis l'ACL, en particulier Oscar -> `public-welcome` seulement ;
-5. une source RH ou IT interdite n'est ni renvoyée ni transmise au faux LLM ;
-6. l'indisponibilité du fournisseur d'embeddings ou de Qdrant bloque la route
-   avant toute lecture ou appel LLM ;
-7. question, vecteurs, passages et résultats ne sont jamais inscrits dans le
-   journal d'audit ;
-8. **Fait et validé par la CI GitHub Actions du commit `d40d318` :** une
-   intégration Qdrant réelle s'exécute automatiquement avec un conteneur de
-   service éphémère. Elle utilise deux passages fictifs, vérifie le writer et
-   prouve que le filtre d'Oscar ne renvoie que `public-welcome`. Aucune recette
-   manuelle ne constitue une validation.
-
-## Références techniques
-
-- [Ollama — Generate embeddings](https://docs.ollama.com/api/embed)
-- [Ollama — EmbeddingGemma](https://ollama.com/library/embeddinggemma)
-- [Qdrant — filtres de recherche](https://qdrant.tech/documentation/search/filtering/)
+Les passages et vecteurs sont des données dérivées, pas une source de droits.
+Avant un futur raccordement : décision explicite, index de test contrôlé,
+tests d’accès complets sur la route et stratégie de réindexation/révocation.
+Aucun MCP ne fait partie de cette étape.

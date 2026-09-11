@@ -1,0 +1,23 @@
+[package]
+name = "chatpurp-api"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+chatpurp-core = { path = "../chatpurp-core" }
+chatpurp-contracts = { path = "../chatpurp-contracts" }
+serde.workspace = true
+serde_json.workspace = true
+axum.workspace = true
+tokio.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
+jsonwebtoken.workspace = true
+aws-lc-rs.workspace = true
+rustix.workspace = true
+time = { version = "=0.3.55", default-features = false, features = ["std"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }

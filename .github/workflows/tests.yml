@@ -10,6 +10,60 @@ permissions:
   contents: read
 
 jobs:
+  rust:
+    name: Rust API and real WASM browser
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      AWS_LC_SYS_USE_SYSTEM: "0"
+      AWS_LC_SYS_CMAKE_BUILDER: "0"
+      AWS_LC_SYS_STATIC: "1"
+      CARGO_BUILD_JOBS: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: tools/browser-tests/.node-version
+      - name: Install pinned native runtimes
+        run: |
+          node tools/browser-tests/install-runtime.mjs
+          sh tools/rust/install.sh
+      - name: Install locked test tooling without package scripts
+        run: |
+          export PATH="$PWD/.local/browser-runtime/node-v22.23.2-darwin-arm64/bin:$PATH"
+          npm --prefix tools/specdd ci --omit=dev --ignore-scripts --no-fund --no-audit
+          npm --prefix tools/browser-tests ci --ignore-scripts --no-fund --no-audit
+          sh tools/rust/run.sh cargo fetch --locked
+          sh tools/rust/run.sh cargo fetch --manifest-path tools/wasm-build/Cargo.toml --locked
+      - name: Audit the complete locked dependency sets
+        run: |
+          export PATH="$PWD/.local/browser-runtime/node-v22.23.2-darwin-arm64/bin:$PATH"
+          node tools/rust/audit-workspace.mjs
+          sh tools/browser-tests/run.sh audit
+      - name: Deterministic native, boundary, SpecDD and browser suite
+        run: sh tools/check.sh
+
+  rust-qdrant:
+    name: Rust against ephemeral Qdrant
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      qdrant:
+        image: qdrant/qdrant:v1.19.1-unprivileged@sha256:801777072776dc81b2a9dd2007b2ed487571f21ecd30efffd15ddb1671f2193d
+        ports:
+          - 6334:6333
+    env:
+      AWS_LC_SYS_USE_SYSTEM: "0"
+      AWS_LC_SYS_CMAKE_BUILDER: "0"
+      AWS_LC_SYS_STATIC: "1"
+      CARGO_BUILD_JOBS: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Rust
+        run: rustup toolchain install 1.98.1 --profile minimal
+      - name: Compile and verify the real vector-store contract
+        run: cargo run --locked -p chatpurp-api --bin qdrant-contract-test -- 6334
+
   specs:
     name: SpecDD contracts
     runs-on: ubuntu-latest
@@ -30,23 +84,6 @@ jobs:
       - name: Verify discovery, references and requirement traceability
         working-directory: tools/specdd
         run: npm test
-
-  test:
-    runs-on: ubuntu-latest
-    services:
-      qdrant:
-        image: qdrant/qdrant:v1.19.1-unprivileged@sha256:801777072776dc81b2a9dd2007b2ed487571f21ecd30efffd15ddb1671f2193d
-        ports:
-          - 6333:6333
-    env:
-      RUN_QDRANT_INTEGRATION: "1"
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Run deterministic test suite
-        run: python -m unittest discover -s tests -v
 
   secrets:
     runs-on: ubuntu-latest

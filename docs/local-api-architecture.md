@@ -1,123 +1,88 @@
-# Architecture détaillée de l'API locale
+# Architecture détaillée de l’API Rust
 
-État exécuté : Python. La migration Rust suit
-[SPEC-001](../specs/001-demo-session-document-read/001-demo-session-document-read.sdd), encore proposée ;
-aucune route n'a été remplacée. La cible est décrite dans
-[ADR-0001](decisions/0001-rust-sdd-and-deployment-boundaries.md).
+## Assemblage et responsabilités
 
-## Rôle
-
-L’API du laboratoire est le processus `python3 ui/server.py`. Elle écoute sur
-`127.0.0.1:3210`, sert l’interface et applique les contrôles de sécurité avant
-tout accès à un document ou appel à Ollama.
-
-Elle ne modifie pas Ollama : elle utilise son API native locale sur
-`127.0.0.1:11434`.
-
-```text
-Navigateur -- 127.0.0.1:3210 --> API Python -- 127.0.0.1:11434 --> Ollama
-```
-
-Les deux services sont limités à `127.0.0.1` : ils ne sont pas accessibles
-depuis le réseau local ou Internet. L’API Ollama existe dès que l’application
-Ollama est démarrée ; l’API Python existe seulement pendant l’exécution de
-`ui/server.py`.
-
-## Composants
-
-| Fichier | Responsabilité |
+| Fichier / module | Responsabilité |
 | --- | --- |
-| `ui/server.py` | Routes HTTP, validation, sessions, orchestration ACL/RAG et relais Ollama. |
-| `ui/index.html` | Interface locale ; n’est jamais une source de permission. |
-| `identity/demo_sso.py` | Annuaire fictif, émission et vérification du JWT court. |
-| `access_control/engine.py` | Traduction groupes -> rôles et décision RBAC/ACL déterministe. |
-| `document_store/reader.py` | Lecture confinée au chemin déclaré, après autorisation. |
-| `document_store/retriever.py` | Classement lexical des seuls documents déjà autorisés. |
-| `semantic_retrieval/clients.py` | Adaptateurs Ollama embeddings, recherche Qdrant et writer Qdrant fixe, testés mais non raccordés à l'API. |
-| `semantic_retrieval/indexer.py` | Indexeur contrôlé : relit les seuls documents de politique, découpe et remet un lot à un writer injecté. |
-| `audit/security_log.py` | Événements d'audit minimaux et stockage local borné pour ACL, lecture, récupération, chat et RAG. |
-| `config/demo-idp/directory.json` | Quatre identités et leurs groupes fictifs. |
-| `config/access-control/demo-policy.json` | Groupes, rôles, ACL et chemins des 15 documents. |
+| [main.rs](../crates/chatpurp-api/src/main.rs) | Valide les arguments, assemble puis écoute sur 127.0.0.1:3211. |
+| [bootstrap.rs](../crates/chatpurp-api/src/bootstrap.rs) | Charge les deux JSON bornés, vérifie leur cohérence avant écoute et construit les adaptateurs. |
+| [http.rs](../crates/chatpurp-api/src/http.rs) | Admission HTTP, cookies, routes, corps bornés, réponses publiques ; pas de décision ACL propre. |
+| [policy.rs](../crates/chatpurp-core/src/policy.rs) | Annuaire, groupes → rôles → ACL, validation et refus par défaut. |
+| [application.rs](../crates/chatpurp-core/src/application.rs) | Session → autorisation → audit → lecture/recherche ou préparation du chat. |
+| [sessions.rs](../crates/chatpurp-api/src/sessions.rs) | JWT HS256 avec aws-lc-rs et horloge injectable ; cookies non ambigus. |
+| [storage.rs](../crates/chatpurp-api/src/storage.rs) | Lecture par descripteurs rustix ; audit privé avec rotation. |
+| [outgoing.rs](../crates/chatpurp-api/src/outgoing.rs) | HTTP sortant loopback, délais, tailles, absence de proxy/redirection ; Ollama. |
+| [semantic.rs](../crates/chatpurp-api/src/semantic.rs) | Embeddings, recherche filtrée et writer Qdrant ; non raccordés aux routes. |
+| [indexing.rs](../crates/chatpurp-core/src/indexing.rs) | Découpage et validation du lot administratif avant écriture. |
+| [assets.rs](../crates/chatpurp-api/src/assets.rs) | Charge les seuls JS/WASM/snippets autorisés et les assets statiques avant écoute. |
+| [contracts](../crates/chatpurp-contracts/src/lib.rs) | Types JSON publics sans secret ni chemin interne. |
+
+Les ports Sessions, Reader et Audit sont des interfaces Rust du core, pas des
+ports TCP. Les tests y injectent des espions pour prouver l’ordre des appels.
+Les lectures disque sont exécutées hors du thread asynchrone HTTP.
 
 ## Routes
 
-| Route | Rôle | Accès documentaire / Ollama |
+| Route | Entrée | Sortie utile |
 | --- | --- | --- |
-| `GET /healthz` | Vérifie que l’API répond. | Ni document ni Ollama. |
-| `POST /api/demo-session` | Crée la session fictive signée. | Ni document ni Ollama. |
-| `GET /api/session` | Vérifie et décrit la session. | Ni document ni Ollama. |
-| `GET /api/access-check` | Retourne une décision ACL journalisée. | Ne lit pas de document. |
-| `GET /api/documents/<id>` | Lit un document autorisé. | Document seulement. |
-| `POST /api/retrieve` | Retourne des extraits autorisés après audit. | Documents autorisés seulement. |
-| `POST /api/chat` | Chat simple après audit. | Ollama, sans document. |
-| `POST /api/rag-chat` | Chat avec extraits autorisés après audit. | Documents autorisés puis Ollama. |
-| `POST /api/logout` | Supprime le cookie côté navigateur. | Ni document ni Ollama. |
+| GET /healthz | Aucun corps | status et modèle fixe ; ne prouve pas qu’Ollama répond. |
+| POST /api/demo-session | identity_id, JSON ≤ 256 octets | Session fictive et cookie ; aucune identité externe. |
+| GET /api/session | Cookie | authenticated, identity.id, identity.display_name. |
+| POST /api/logout | Aucun corps | authenticated=false, cookie supprimé. |
+| GET /api/documents/<id> | Identifiant brut | resource_id, classification, content. |
+| GET /api/access-check?resource_id=<id> | Identifiant unique | allowed=true si admis ; sinon erreur de refus. |
+| POST /api/retrieve | query, JSON ≤ 1024 octets | Au plus trois résultats, extrait ≤ 500 caractères. |
+| POST /api/chat | message, JSON ≤ 16000 octets | content, sans historique. |
+| POST /api/rag-chat | Même entrée | content et identifiants de sources autorisées. |
 
-Les routes `POST /api/chat` et `POST /api/rag-chat` acceptent un JSON contenant
-seulement `{"message":"…"}`. Un message absent, vide, non textuel ou trop
-long est refusé avec `400`. Les champs client supplémentaires comme `context`,
-`sources`, rôle ou chemin ne modifient jamais la sécurité ou le contexte RAG.
+Les champs supplémentaires non ambigus sont ignorés, jamais des droits.
+Les doublons JSON sont rejetés à tous les niveaux, même dans un champ ignoré.
+Le filtre HTTP précède le cas d’usage. Les en-têtes communs sont JSON UTF-8,
+Cache-Control: no-store et X-Content-Type-Options: nosniff.
 
-## Relais vers Ollama
+## Erreurs documentaires, dans cet ordre
 
-L’API impose le modèle `qwen3:4b`, l’URL locale fixe
-`http://127.0.0.1:11434/api/chat`, `stream: false` et `think: false`. Après la
-réponse, elle retire tout contenu situé avant `</think>`, car Qwen peut ignorer
-la demande `think: false`. Elle retourne `502` si Ollama est indisponible ou si
-sa réponse est invalide.
+| Statut | Condition et message |
+| --- | --- |
+| 401 | Session de démonstration requise. |
+| 400 | Ressource de démonstration invalide. |
+| 403 | Accès au document refusé. Inconnu et interdit sont identiques. |
+| 503 | Journal de sécurité indisponible. |
+| 500 | Document indisponible. |
 
-Ces adaptations appartiennent à notre API ; elles ne modifient ni les routes,
-ni les modèles, ni la configuration d’Ollama.
+Une panne d’audit ne remplace pas un refus déjà acquis. C’est aussi le choix
+uniformisé pour access-check en Rust. Une réponse d’erreur ne retourne jamais
+un document partiel ou un chemin système. Un problème Ollama retourne 502 avec
+un message générique, sans détails de la connexion.
 
-## État et données
+## Admission HTTP et assets
 
-- La clé JWT est créée aléatoirement au démarrage et reste seulement en mémoire.
-- Les sessions expirent après 15 minutes et un redémarrage les invalide.
-- Les prompts et réponses ne sont pas journalisés par le serveur.
-- Les décisions de lecture directe, de vérification ACL, de recherche, de chat
-  simple et de RAG sont écrites dans `.local/audit/access-decisions.jsonl`,
-  hors Git, limité à 1 Mo avec une sauvegarde et des permissions privées. Les
-  termes de recherche, extraits, messages, sources et réponses ne sont pas
-  journalisés.
-- Les documents sont des fichiers Markdown fictifs versionnés dans Git.
-- Aucun index persistant ni embedding intégré à l'API n’existe. Qdrant local
-  est démarré mais sa collection est vide et l'API ne s'y connecte pas encore.
-  Le modèle local `embeddinggemma` est installé dans Ollama mais n'est pas
-  encore consommé par ce processus. Les adaptateurs sémantiques et l'indexeur
-  contrôlé sont isolés, n'ont pas de route HTTP et aucun d'eux n'est encore
-  instancié pour écrire dans Qdrant réel. Aucun MCP n'existe.
+Host unique exactement 127.0.0.1:3211 ; Origin unique exactement
+http://127.0.0.1:3211 s’il est fourni, obligatoire pour les POST API.
+Aucun repli Referer, Forwarded ou localhost, aucun CORS. Méthode inconnue sur
+route connue : 405 et Allow ; route inconnue : 404. HEAD API : 405 sans corps.
 
-## Contrôles de frontière
+Ligne/en-têtes ≤ 16 KiB ; réception des en-têtes puis du corps ≤ 5 secondes
+chacune au total. Corps vide sur les GET et logout. Content-Encoding refusé.
+JSON : application/json, optionnellement charset=utf-8 seulement.
+L’URL doit être relative. Les suffixes documentaires ne sont jamais décodés :
+la session précède la validation de l’identifiant brut.
 
-1. Le navigateur ne choisit jamais ses rôles ou les sources RAG.
-2. L’API vérifie le jeton avant toute route protégée.
-3. L’ACL est évaluée avant la lecture physique d’un fichier.
-4. Le lecteur refuse les chemins client et reste dans `demo-documents/`.
-5. Le récupérateur reçoit uniquement des identifiants déjà autorisés.
-6. Le chat RAG construit son contexte côté serveur, puis retourne les sources.
-7. Ollama ne reçoit jamais un chemin local, une ACL ou une permission.
-8. Chaque décision sensible déclenche une tentative de journalisation minimale.
-   Pour toute opération qui lirait un document ou appellerait Ollama, un journal
-   indisponible provoque un refus avant cette lecture ou cet appel.
+Hyper reste l’unique parseur. Content-Length identiques sont normalisés ;
+contradictoires sont rejetés. Un cadrage mixte valide utilise chunked.
+Toutes les connexions servent une seule requête : aucune requête pipelinée
+suivante ne sera exécutée, y compris après rejet ou cadrage mixte.
 
-## Limites connues et évolutions
+Les assets sont chargés dans une table de chemins explicites, limitée à
+64 fichiers générés et 32 Mio au total. Le serveur ne publie pas le dépôt.
+CSP : scripts locaux et compilation WASM, styles locaux, connexions locales ;
+workers, frames, objets, formulaires et inclusion dans une frame interdits.
 
-- L’identité est une simulation libre locale, non un SSO d’entreprise.
-- La recherche est lexicale ; elle ne comprend pas encore la similarité sémantique.
-- Le chat RAG limite le contexte à trois extraits de 500 caractères.
-- La journalisation active couvre toutes les routes qui lisent des documents,
-  renvoient une décision ACL ou appellent Ollama. Les routes de session et de
-  santé ne sont pas journalisées à ce stade.
-- Les documents restent fictifs.
-- Un futur MCP devra passer par une passerelle d’actions contrôlées ; Oscar ne
-  pourra utiliser que des actions `read` explicitement enregistrées.
+## Relation avec l’API Ollama
 
-## Démarrage et vérification
+Aucune route d’Ollama n’est « surchargée » ou modifiée dans son serveur.
+Notre API est une couche intermédiaire : elle valide, autorise et transforme
+la requête, puis appelle l’API officielle locale /api/chat ou, séparément,
+/api/embed. Ni le navigateur ni le LLM ne choisissent un endpoint sortant.
 
-```text
-python3 ui/server.py
-curl http://127.0.0.1:3210/healthz
-curl http://127.0.0.1:11434/api/version
-```
-
-Le premier contrôle vérifie l’API du laboratoire ; le second vérifie Ollama.
+Voir les [séquences](api-request-flow.md) et la [sécurité](security-requirements.md).

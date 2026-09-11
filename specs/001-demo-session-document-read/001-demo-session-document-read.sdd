@@ -1,6 +1,5 @@
 Spec: SPEC-001 — Session de démonstration et lecture documentaire autorisée
-# Statut : proposée pour revue pédagogique ; conversion SpecDD le 2026-09-11.
-# Direction Rust/SDD acceptée ; implémentation et preuves Rust non commencées.
+# Statut : implémentation et bascule Rust vérifiées localement ; CI distante à finaliser.
 # Syntaxe : langage SpecDD 1.2, référence framework 1.5.
 
 Purpose:
@@ -8,19 +7,20 @@ Purpose:
 
 Owns:
   Le contrat fonctionnel du parcours session fictive et lecture documentaire de SPEC-001.
-  Les futurs fichiers d'implémentation seront attribués dans le plan ; aucun chemin de code n'est attribué par cette entrée conceptuelle.
+  Le plan attribue les responsabilités aux packages core, contracts, API et web ; cette entrée n'accorde aucun droit système.
 
 Can read:
   ../../config/demo-idp/directory.json
   ../../config/access-control/demo-policy.json
 
 References:
+  ./plan.md
   ../README.md
   ../../AGENTS.md
   ../../docs/decisions/0001-rust-sdd-and-deployment-boundaries.md
   ../../docs/demo-document-catalog.md
-  ../../docs/demo-sso-authentication.md
-  ../../docs/controlled-document-access.md
+  ../../docs/security-requirements.md
+  ../../docs/local-api-architecture.md
 
 Must:
   SES-01: Choix libre d'une identité déclarée ; identité inconnue refusée sans création de session
@@ -36,16 +36,23 @@ Must:
   AUD-02: Audit minimal borné et privé ; aucun cookie, jeton ou contenu documentaire
   UI-01: Interface clairement fictive, affichage texte et erreurs compréhensibles ; serveur toujours souverain
   ISO-01: Écoute locale seulement ; aucune connexion Ollama, Qdrant ou MCP dans ce parcours
+  HTTP-01: Filtrer Host et Origin selon la configuration locale ; transport borné, routage explicite, cadrage normalisé par Hyper et autres ambiguïtés refusées selon le profil HTTP décrit dans plan.md
+  HTTP-01 est le profil de transport Rust accepté par l'utilisateur.
+  Ajustement de cadrage accepté : sans Transfer-Encoding, des Content-Length valides de même valeur sont normalisés en une longueur unique ; des valeurs contradictoires sont refusées avec fermeture.
+  Avec Content-Length et Transfer-Encoding chunked valide, Hyper délimite le corps selon chunked, retire Content-Length et ferme la connexion après la réponse, sans exécuter une seconde requête sur cette connexion.
+  Cette admission de cadrage ne dispense d'aucun contrôle Host/Origin, de taille, de délai, de session, d'ACL ou d'audit ; les doublons JSON et de cookie de session restent refusés dans leurs parcours respectifs.
   Périmètre inclus : choix de l'une des quatre identités fictives, création et consultation de session, déconnexion du navigateur, lecture directe d'un document, décisions ACL et audit de cette lecture.
   La politique et l'annuaire référencés constituent les données fictives de référence.
   Le rôle MCP futur d'Oscar n'accorde aucun droit documentaire supplémentaire.
   PUBLIC n'est pas synonyme d'accès anonyme ni d'accès accordé à toutes les identités.
   La déconnexion retire le cookie du navigateur ; elle ne révoque pas un jeton déjà copié. Celui-ci expire ou devient invalide au changement de clé.
+  Pour SES-02, iat et exp sont des secondes UTC entières non négatives obligatoires, exp - iat vaut exactement 900 ; le jeton est expiré dès que now >= exp, sans tolérance supplémentaire.
+  L'heure est fournie côté serveur selon le port décrit dans plan.md, jamais par le navigateur ; une erreur d'horloge ne permet ni émission de jeton ni validation de session. Une signature correcte seule ne construit pas une identité vérifiée.
   Sur le HTTP loopback actuel, le cookie n'a pas Secure ; toute exposition réseau impose une autre décision et un contrat HTTPS.
   Le journal conserve seulement timestamp, event, route normalisée, outcome, identity_id vérifié ou nul, resource_id valide ou nul.
   La destination d'audit reste locale et ignorée par Git ; fichier de 1 MiB au plus et une sauvegarde, permissions privées.
   L'événement d'audit décrit la décision, pas le succès de lecture.
-  Les autres fonctionnalités Python restent disponibles dans leur version actuelle pendant la migration.
+  Les fonctionnalités complémentaires de chat et RAG sont couvertes par SPEC-002.
   Le plan du lecteur traite le risque de changement de chemin/lien entre vérification et ouverture et précise la protection retenue.
     Une simple résolution de chemin ne suffit pas à affirmer une protection contre cette course.
 
@@ -64,9 +71,11 @@ Returns:
   Lecture réussie : HTTP 200 avec identifiant, classification et contenu.
 
 Raises:
+  Avant le parcours documentaire, le filtre de transport peut refuser la requête selon HTTP-01 ; aucun cas d'usage ni lecteur n'est alors appelé.
   Ordre de priorité pour la lecture : session absente/invalide 401 ; identifiant mal formé 400 ; ressource inconnue/interdite 403 ; audit indisponible après autorisation 503 ; fichier indisponible/incohérent 500.
   Une réponse d'erreur n'expose ni contenu ni chemin système.
   Si une demande est déjà refusée, une panne d'audit conserve le refus initial.
+  La priorité documentaire s'applique aux requêtes admises par le transport ; un refus de transport n'est pas une décision ACL et ne crée pas d'événement AUD-01.
 
 Handles:
   Les entrées navigateur et le contenu documentaire sont non fiables.
@@ -75,10 +84,11 @@ Handles:
   Un autre processus hostile exécuté avec les mêmes droits système peut dépasser les garanties de cette API locale.
 
 Tasks:
-  [?] Relire le contrat avec l'utilisateur avant son plan technique.
-  [ ] Détailler les schémas HTTP complets à partir du contrat existant.
-  [ ] Établir le plan de migration et les tâches d'implémentation reliées aux exigences.
-    La migration complète du chat et du RAG fera l'objet d'autres specs.
+  [x] Clarifier avec l'utilisateur les contrats fonctionnels, HTTP et de sécurité.
+  [x] Qualifier les bibliothèques, compiler le workspace natif/WASM et vérifier les graphes.
+  [x] Implémenter sessions, ACL, lecture contrôlée et audit avec preuves automatisées.
+  [x] Vérifier les parcours sur le véritable parseur HTTP et l'interface Dioxus compilée.
+  [ ] Finaliser bascule autorisée, nettoyage documentaire et publication avec CI distante vérifiée.
 
 Done when:
   SES-01: Création pour les quatre identités, refus d'un identifiant inconnu et d'un corps invalide
@@ -94,12 +104,16 @@ Done when:
   AUD-02: Liste fermée des champs, valeurs sensibles sentinelles absentes, rotation et permissions des fichiers
   UI-01: Parcours navigateur automatisé Oscar autorisé/refusé, contenu HTML malveillant inerte, appel direct API refusé
   ISO-01: Inspection de l'adresse d'écoute et dépendances espionnées ; parcours réussi sans ces services
+  HTTP-01: Tests HTTP et navigateur du profil plan.md : Host/Origin, types de contenu, méthodes, chemins bruts, cookies/JSON ambigus, bornes et délais ; chaque refus de transport prouve zéro appel au cas d'usage, zéro cookie émis et zéro lecture
+  Pour HTTP-01, des requêtes réseau brutes prouvent la normalisation des longueurs identiques sans Transfer-Encoding, le refus des longueurs contradictoires sans Transfer-Encoding, et le traitement chunked avec fermeture effective dans les deux ordres des en-têtes mixtes.
+  Pour SES-02, horloge privée de test : émission exp=iat+900, validité à exp-1, refus à exp et exp+1 ; types et durées invalides, dépassement numérique et horloge en erreur refusés selon plan.md. Signature, issuer, audience et groupes restent contrôlés avant toute identité vérifiée.
+  Pour le cas mixte, prouver la limite de 256 octets de corps décodé, le maintien des contrôles d'accès et l'absence d'exécution d'une seconde requête déjà envoyée sur la même connexion ; ces tests utilisent le parseur HTTP réel.
   Chaque exigence possède des tests identifiés et des résultats constatés.
   Les refus prouvent l'absence de lecture, pas seulement un statut HTTP.
   Les tests sont déterministes, avec fichiers temporaires et horloge injectée ; aucun accès aux journaux de session réels ni au Qdrant local.
   Le parcours navigateur et les contrats HTTP sont automatisés en CI ; la stratégie couvre le comportement filesystem sur macOS avant bascule.
-  Les fixtures contractuelles peuvent comparer Python et Rust ; tout écart est expliqué par la spec, plutôt que copié aveuglément depuis Python.
-  Le plan définit coexistence (adresses et cookies sans collision), bascule locale et retour arrière avant remplacement du service actif.
+  Les fixtures contractuelles vérifient le comportement Rust contre ce contrat, y compris les durcissements acceptés.
+  Le plan définit l'adresse, le cookie, la livraison locale et le retour arrière.
   Documentation effective et résultats de CI sont mis à jour.
   Une validation syntaxique de ce fichier ne valide ni le workspace Rust, ni ses tests, ni la bascule de service.
 
@@ -133,3 +147,28 @@ Scenario: Panne de journal pour une demande déjà refusée
   Given une demande de lecture refusée
   When la tentative d'audit échoue
   Then le refus initial est conservé
+
+Scenario: Création de session depuis une autre origine
+  Given une requête POST de création de session avec Host valide mais Origin différent de l'origine configurée
+  When elle propose une identité fictive déclarée
+  Then le transport répond 403 avant la création de session
+  And aucun cookie n'est émis
+
+Scenario: Longueurs identiques sans Transfer-Encoding
+  Given une création de session entièrement valide avec deux Content-Length valides de même valeur et sans Transfer-Encoding
+  When Hyper interprète la requête
+  Then une longueur unique est utilisée et les contrôles habituels restent appliqués
+  And la création peut réussir sans rejet dû au seul doublon de longueur
+
+Scenario: Longueurs contradictoires sans Transfer-Encoding
+  Given une requête avec deux Content-Length de valeurs différentes et sans Transfer-Encoding
+  When Hyper interprète la requête
+  Then la requête est refusée et la connexion est fermée
+  And aucun cas d'usage ni lecteur n'est appelé
+
+Scenario: Cadrage mixte chunked et Content-Length
+  Given une création de session entièrement valide avec Content-Length et Transfer-Encoding chunked valide
+  When Hyper interprète la requête et le corps décodé respecte la limite
+  Then seul chunked délimite le corps et Content-Length est retiré avant traitement applicatif
+  And les contrôles habituels restent appliqués
+  And la connexion est fermée après la réponse sans exécuter une seconde requête sur celle-ci

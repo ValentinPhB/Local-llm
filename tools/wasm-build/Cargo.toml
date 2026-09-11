@@ -1,0 +1,17 @@
+[package]
+name = "chatpurp-wasm-build"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.98.1"
+publish = false
+
+# Isolated build tool, not shipped with the application.
+[workspace]
+resolver = "3"
+
+[[bin]]
+name = "chatpurp-wasm-transform"
+path = "src/main.rs"
+
+[dependencies]
+wasm-bindgen-cli-support = "=0.2.128"

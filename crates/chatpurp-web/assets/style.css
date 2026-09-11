@@ -1,0 +1,9 @@
+:root {color-scheme:dark;font-family:system-ui,sans-serif;background:#10161e;color:#e9eff6}
+body {max-width:960px;margin:32px auto;padding:0 20px}
+h1 {margin-bottom:4px} h2 {font-size:1.25rem}
+p, label {line-height:1.5} .muted {color:#adbfd2}
+section {padding:20px;background:#192330;border:1px solid #34465e;border-radius:12px;margin:20px 0}
+label {display:block;margin-top:12px} input,textarea,select {box-sizing:border-box;width:100%;border:1px solid #607893;background:#111a26;color:inherit;border-radius:6px;padding:10px;font:inherit}
+textarea {min-height:100px} button {font:inherit;background:#3267b0;color:white;padding:10px 16px;border:0;border-radius:6px;margin:12px 10px 0 0;cursor:pointer}
+button:disabled {opacity:.5;cursor:wait} button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {outline:3px solid #98cfff}
+pre {white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;font:inherit} #feedback {color:#ffce86;min-height:24px}

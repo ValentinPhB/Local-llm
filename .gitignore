@@ -12,11 +12,16 @@ secrets/
 # Local runtime artifacts and editor/OS metadata.
 *.log
 .local/
+target/
 tmp/
 .DS_Store
 
 # Development-only SpecDD validator dependencies.
 tools/specdd/node_modules/
+tools/browser-tests/node_modules/
 
 # Personal handoff notes for the local lab; never publish project progress.
 STATUS.md
+
+# Vscode 
+.vscode/settings.json

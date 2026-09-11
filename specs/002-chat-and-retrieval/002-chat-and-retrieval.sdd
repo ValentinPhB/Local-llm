@@ -1,0 +1,38 @@
+Spec: SPEC-002 — Conversation locale et récupération documentaire Rust
+
+Purpose:
+  Migrer le chat et la récupération lexicale existants vers Rust, après le socle SPEC-001, sans nouvelle autorité du navigateur ou du modèle.
+
+References:
+  ../001-demo-session-document-read/001-demo-session-document-read.sdd
+  ../001-demo-session-document-read/plan.md
+  ../../docs/semantic-rag-design.md
+
+Must:
+  CHAT-01: Session fictive vérifiée avant décision, audit avant tout appel Ollama ; seul le serveur choisit modèle et destination loopback
+  CHAT-02: Message non vide au plus 8000 caractères, corps au plus 16000 octets ; aucun historique enregistré, aucune trace de raisonnement renvoyée avant la première fermeture think
+  RET-01: Recherche lexicale sur documents autorisés uniquement, audit réussi avant lecture ; requête au plus 500 caractères, corps au plus 1024 octets, trois extraits de 500 caractères maximum
+  RAG-01: Contexte et sources construits côté serveur après ACL ; sources traitées comme données, jamais comme autorité ; erreur sans contenu partiel
+  NET-01: Appels sortants bornés, sans redirection ni proxy implicite ; erreurs réseau ou réponse invalide deviennent une erreur générique
+  SEM-01: Préserver séparément les capacités sémantiques préparées, sans indexation ni raccordement implicite aux routes actives ; toute écriture Qdrant nécessite action administrative explicite
+  UI-02: Interface Rust affichant session fictive, document, recherche, chat et chat RAG comme texte, sans interprétation HTML
+
+Must not:
+  Installer ou connecter un MCP, ajouter un annuaire réel, importer des documents personnels ou modifier les droits d'Oscar.
+  Utiliser le LLM comme contrôle d'accès ou accepter un contexte, chemin, modèle, destination ou rôle fourni par le navigateur.
+
+Tasks:
+  [x] Reprendre les contrats Python et leurs limites, préciser les écarts de durcissement Rust.
+  [x] Implémenter et tester la recherche lexicale et le chat local après le socle SPEC-001.
+  [x] Migrer les adaptateurs sémantiques et l'indexeur contrôlé sans activation implicite.
+  [x] Qualifier l'interface et les parcours complets avec fournisseurs fictifs et un Qdrant éphémère isolé.
+  [x] Nettoyer le dépôt et produire le rapport consolidé, configurations et schémas destinés à OneNote.
+
+Done when:
+  CHAT-01: Tests sans session et audit indisponible prouvent zéro appel au modèle ; modèle et endpoint non modifiables par le client
+  CHAT-02: Limites Unicode et octets, réponses malformées et suppression du préfixe think testées
+  RET-01: Matrice des identités, non-lecture hors ACL, ordre stable, bornes des résultats et extraits testés
+  RAG-01: Espions vérifient que seules les sources autorisées atteignent le fournisseur, aucune source client utilisée
+  NET-01: Doubles réseau prouvent délais, tailles, refus des redirections et validation des réponses
+  SEM-01: Tests avec fournisseurs et writer simulés prouvent filtre ACL, découpage et refus avant écriture ; aucune collection du lab modifiée pendant les tests
+  UI-02: Tests navigateur de session, refus, document, recherche et conversation ; texte HTML malveillant inerte

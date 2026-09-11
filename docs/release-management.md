@@ -1,253 +1,191 @@
-# Release management — CI/CD et qualité des briques
+# Installation, CI/CD et livraison locale
 
-## Objet
+## Responsabilités et versions
 
-Ce document définit le cycle DevOps actuel et sa trajectoire : comment une
-modification de code, de politique RBAC, de modèle ou de composant est testée,
-analysée, approuvée puis déployée localement.
+Le dépôt public GitHub est ValentinPhB/ChatPurp, branche main. Une modification
+de fichier, un succès local et un succès GitHub Actions sont trois états distincts.
+La migration n’est pas déclarée livrée avant la bascule et les contrôles distants.
 
-Il ne décrit pas seulement les versions : une release est un artefact dont la
-qualité, la sécurité, la compatibilité et le retour arrière ont été vérifiés.
-
-## État actuel
-
-La direction Rust/SDD est acceptée dans
-[ADR-0001](decisions/0001-rust-sdd-and-deployment-boundaries.md).
-La [méthode SDD](../specs/README.md) relie désormais exigences, tests et
-livraisons. Aucun build ni job Rust/WASM n'existe encore : ils seront définis
-dans le plan de [SPEC-001](../specs/001-demo-session-document-read/001-demo-session-document-read.sdd),
-avec contrats HTTP, parcours navigateur automatisés et qualification macOS.
-La CI Python reste la preuve de l'existant, pas de la future version Rust.
-
-Le workflow inclut maintenant un job `SpecDD contracts` pour le
-[pilote de format](decisions/0002-specdd-contract-pilot.md). Il installe le
-runtime et la CLI fixés dans [tools/specdd](../tools/specdd/README.md), puis
-audite ses dépendances d'exécution, exécute le lint officiel et les huit
-contrôles du contrat. Les dépendances de développement amont sont exclues
-par `--omit=dev`, les scripts d'installation sont désactivés. Le résultat
-distant se vérifie sur l'exécution GitHub Actions du commit concerné ; ses
-commandes ont une vérification locale distincte.
-
-Le contrôle d'audit conserve visibles les alertes sur les paquets dev amont
-exclus de l'installation. Il ne les écarte du seuil bloquant qu'après preuve
-de leur absence et de leur statut dev dans le shrinkwrap amont ; les tests
-couvrent aussi les erreurs de rapport et le refus d'exclure un paquet installé.
-Le détail est dans le guide de l'outillage ; le lockfile complet ne doit pas
-être présenté comme exempt d'alertes.
-
-Une CI GitHub Actions est configurée dans `.github/workflows/tests.yml`. Elle
-exécute les contrôles SpecDD, la suite Python déterministe et Gitleaks à chaque push sur `main` et
-pull request. Elle ne déploie rien, ne télécharge aucun modèle et n'appelle pas
-Ollama.
-
-Il n'autorise aucun déploiement réseau ou cloud. L'audit des dépendances de
-l'outillage SpecDD est configuré ; les autres scans de dépendances, les scans
-d'images et le SBOM restent des extensions prévues.
-
-## Briques et responsabilités de test
-
-| Brique | Code ou artefact | Tests unitaires | Tests d'intégration | Contrôles sécurité |
-| --- | --- | --- | --- | --- |
-| Interface/API locale | `ui/server.py`, `ui/index.html` | Validation de message, filtre `</think>`, erreurs HTTP | Serveur démarré, session refusée/acceptée, document autorisé/refusé, `/api/chat` avec Ollama simulé | écoute loopback, pas de logs de prompts, analyse Python |
-| Simulation SSO | `identity/demo_sso.py`, `directory.json` | signature, expiration, issuer, audience et groupes | cookie falsifié refusé par l'API | aucune clé persistante, cookie HttpOnly, identité libre interdite sur chat |
-| Politique d'accès | `demo-policy.json` | groupes -> rôles et décision RBAC/ACL | API + moteur de politique, avant tout contexte LLM | refus par défaut, absence de contournement par prompt |
-| Documents fictifs | `demo-documents/` et chemins de politique | présence, nombre, classification et métadonnées | lecteur contrôlé après ACL, avant RAG | aucun document réel, chemin déclaré obligatoire, refus avant lecture |
-| Récupération lexicale et RAG | `document_store/retriever.py`, `ui/server.py` | classement lexical, bornage, contexte serveur | ACL avant lecture, extraits autorisés seulement, faux Ollama | pas d'index vectoriel persistant, pas de contenu dans les journaux |
-| Ollama | application macOS | hors CI : logiciel tiers | API locale, version, écoute `127.0.0.1` | signature/notarisation, veille CVE avant mise à jour |
-| Modèle | manifeste et blobs Ollama | hors CI : artefact tiers | requête non sensible, mémoire et temps de réponse | licence, origine, identifiant de contenu, comportement `think` |
-| RAG sémantique en préparation | `semantic_retrieval/` | clients loopback, filtre Qdrant, chunking, indexeur et writer fixe | faux embeddings ; Qdrant éphémère réel en CI avec deux passages fictifs | Qdrant local non alimenté ; aucune route sémantique active |
-| MCP futur | passerelle et connecteurs | validation des permissions et paramètres | action autorisée/refusée avec faux service | secrets dédiés, moindre privilège, audit, scan dépendances ; Oscar limité à `read` déclaré |
-
-## CI actuelle et extensions prévues
-
-Aujourd'hui, chaque push sur `main` et chaque pull request vers `main` déclenche
-trois jobs : contrats SpecDD, suite Python déterministe et Gitleaks sur l'historique Git. Les
-tests Python couvrent aussi la validité JSON et les liens Markdown via les tests
-de dépôt. Ils démarrent temporairement l'API sur loopback et simulent Ollama.
-
-Les extensions suivantes ne sont pas encore configurées :
-
-```text
-1. Sécurité et supply chain additionnelles
-   -> scan des dépendances applicatives, notamment Rust lors de la migration
-   -> scan d'image si un conteneur est ajouté
-   -> génération d'un SBOM pour les artefacts empaquetés
-
-2. Migration Rust
-   -> compilation native et WASM, formatage et analyse statique
-   -> tests des exigences de SPEC-001, contrats HTTP et parcours navigateur
-   -> qualification macOS et preuves de coexistence/retour arrière
-```
-
-Qdrant est déjà un service CI éphémère : l'intégration writer et filtre ACL
-est active avec deux passages fictifs, sans lecture des documents du dépôt.
-
-Une protection de branche peut ultérieurement imposer ces statuts avant fusion ;
-elle n'est pas décrite par ce dépôt.
-
-## Installation des briques dans la CI
-
-La CI installe seulement ce qui est nécessaire pour **tester notre code** sur
-un runner isolé. Elle ne doit pas installer l'application macOS Ollama ni
-télécharger le modèle réel.
-
-| Brique | Installation dans le runner CI | Raison |
-| --- | --- | --- |
-| Dépôt | récupération exacte du commit à tester | le commit est l'artefact source |
-| Python | version supportée explicitement sélectionnée par le workflow | exécuter analyse et tests de `ui/server.py` |
-| Dépendances Python | aucune aujourd'hui : bibliothèque standard uniquement | éviter une dépendance implicite ; plus tard, installer depuis un fichier verrouillé et contrôlé |
-| Validateur SpecDD | Node fixé par `tools/specdd/.node-version`, puis `npm ci --omit=dev --ignore-scripts` depuis son lockfile | audit des dépendances d'exécution, syntaxe et références des contrats, indépendamment du code applicatif |
-| Interface HTML | aucun build ni package aujourd'hui | `index.html` est livré tel quel avec le code source |
-| Qdrant de test | conteneur de service au digest verrouillé dans le workflow | tester le writer et le filtre ACL sur une instance éphémère |
-| Politique RBAC/ACL | incluse dans le commit ; validée comme JSON | les règles font partie de l'artefact à tester |
-| Ollama de test | faux serveur défini par les tests, pas Ollama réel | réponses déterministes, aucun téléchargement de modèle |
-| Outils de scan | Gitleaks est exécuté par le workflow ; les scans de dépendances, d'images et le SBOM restent à ajouter | secrets aujourd'hui, supply chain ensuite |
-
-Le workflow récupère le commit, installe Python 3.11 pour les tests applicatifs
-et Node pour le validateur SpecDD dans un job distinct. Gitleaks analyse les
-secrets dans un autre job. Aucun de ces jobs n'appelle le registre d'Ollama
-ni l'API réelle du Mac.
-
-## Installation et déploiement local de chaque brique
-
-Le déploiement local applique un commit ou un tag déjà validé par la CI. Toutes
-les commandes suivantes sont exécutées manuellement et seulement après accord
-explicite : aucun déploiement automatique n'est actif aujourd'hui.
-
-| Brique | Comment elle est installée ou mise à jour sur le Mac | Vérification après installation |
-| --- | --- | --- |
-| Code du laboratoire | `git fetch origin`, puis sélection du commit/tag validé ; les fichiers Python, HTML et JSON arrivent ensemble | `git status --branch` et commit attendu |
-| Python | fourni actuellement par les Command Line Tools de macOS ; aucune librairie tierce n'est installée pour l'interface | `python3 --version`, puis compilation et tests |
-| API locale Python | pas d'installation système : démarrage explicite avec `python3 ui/server.py` | `curl http://127.0.0.1:3210/healthz` et écoute `127.0.0.1:3210` |
-| Politique RBAC/ACL | fichier JSON livré avec le même commit que le code ; pas de base de données ni migration à ce stade | validation JSON, matrice autorisation/refus et chemins de documents |
-| Documents fictifs | fichiers Markdown versionnés avec le code ; aucun téléchargement ou index local | test 9/3/3, métadonnées et chemins référencés par la politique |
-| Ollama | application macOS téléchargée depuis la release officielle, montée en lecture seule, signature et notarisation vérifiées, puis copiée dans `/Applications` | `ollama --version`, `/api/version` et écoute `127.0.0.1:11434` |
-| Modèle | téléchargement explicite par `ollama pull <nom:tag>` ; les blobs restent dans le stockage Ollama local | `ollama list`, `ollama show`, identifiant de contenu, espace disque et test non sensible |
-| RAG sémantique | Qdrant local au digest verrouillé ; clients, indexeur et writer Python versionnés, mais non appelés | tests ACL avant indexation et avant récupération ; aucune donnée réelle |
-| MCP futur | connecteur approuvé, version/digest verrouillé, credential dédié injecté hors de Git | tests autorisation/refus et journal d'audit |
-
-### Séquence de déploiement local actuelle
-
-```text
-1. Vérifier que le commit/tag a réussi la CI.
-2. Mettre à jour le dépôt sur le commit/tag validé.
-3. Détecter les briques modifiées dans les notes de release.
-4. Mettre à jour seulement ces briques :
-   - code/politique : Git ;
-   - Ollama : DMG officiel vérifié, si une nouvelle version est prévue ;
-   - modèle : ollama pull, si le manifeste cible a changé.
-5. Lancer la suite automatisée applicable ; la CI reste la preuve d'acceptation
-   du code.
-6. Consigner le résultat ou revenir au tag précédent.
-```
-
-Une release de code ne réinstalle donc pas automatiquement Ollama ni le modèle.
-Chaque artefact externe est mis à jour seulement lorsqu'une version cible est
-explicitement décidée et vérifiée.
-
-## Limite volontaire entre CI et CD local
-
-GitHub Actions peut vérifier le code dans le cloud, mais ne peut pas déployer
-sur ce Mac sans installer un **runner auto-hébergé** ayant accès à la machine.
-Un tel runner pourrait exécuter du code issu des workflows ; il serait donc une
-nouvelle surface d'attaque. Nous restons volontairement sur ce modèle :
-
-```text
-CI GitHub : teste et publie un résultat
-       !=
-CD local manuel : l'utilisateur décide d'installer ou mettre à jour le Mac
-```
-
-Si nous décidons un jour d'automatiser le CD local, il faudra d'abord concevoir
-le runner, son compte système, ses permissions, ses secrets et son isolement.
-Ce sera une brique de sécurité à part entière.
-
-## Pourquoi Ollama réel n'est pas exécuté dans la CI
-
-La CI hébergée ne doit ni télécharger un modèle de plusieurs Go ni envoyer de
-prompt vers un service extérieur. Les tests d'intégration utiliseront un faux
-serveur Ollama qui renvoie des réponses déterministes. Ainsi, la CI teste notre
-code et son contrat HTTP, indépendamment de l'inférence.
-
-Une vérification opérationnelle locale du vrai modèle peut confirmer
-l'installation, Metal, la mémoire et l'écoute réseau, mais elle ne remplace pas
-les tests automatisés et ne constitue pas un critère d'acceptation de code.
-
-## Chaîne CD cible : déploiement local contrôlé
-
-Il n'y a pas de production cloud dans ce laboratoire. Le « déploiement » cible
-est donc un déploiement local sur ce Mac, après succès de la CI.
-
-```text
-Commit validé sur main
-    -> tag de release candidat
-    -> notes de release et manifeste des composants
-    -> validation manuelle de l'utilisateur
-    -> mise à jour locale d'une seule brique
-    -> tests automatisés applicables
-    -> tag de release final ou rollback
-```
-
-La validation manuelle est obligatoire avant toute action qui :
-
-- télécharge ou supprime un modèle ;
-- installe ou met à jour une application tierce ;
-- ajoute un document, une persistance, un compte ou un MCP ;
-- modifie une exposition réseau ;
-- introduit un secret ou un identifiant de service.
-
-## Artefacts d'une release
-
-Une release devra produire ou référencer :
-
-| Artefact | Contenu |
+| Brique | Installation / référence |
 | --- | --- |
-| Tag Git signé ou identifié | code exact livré |
-| Notes de release | changements, risques, incompatibilités et rollback |
-| Rapports CI | tests, qualité, scans et versions d'outils |
-| Manifeste | versions Ollama/modèle, hash de la politique, dépendances |
-| SBOM si dépendances ou image | inventaire exploitable pour les CVE |
-| Preuves locales optionnelles | état des services et vérifications opérationnelles, sans remplacer la CI |
+| Outils Apple | Command Line Tools et SDK macOS, vérifiés par xcode-select -p et clang --version. |
+| Rust / Cargo | 1.98.1 via rustup 1.29.1 ; [installateur local](../tools/rust/install.sh), empreinte avant exécution, aucun profil shell modifié. |
+| Dépendances Rust | Cargo.toml et Cargo.lock, versions exactes ; compilation ARM64 et WASM. |
+| Transformation WASM | wasm-bindgen-cli-support 0.2.128 dans [tools/wasm-build](../tools/wasm-build/Cargo.toml) ; pas de CLI complète, pas de Bun. |
+| Node / navigateur | [runtime-lock.json](../tools/browser-tests/runtime-lock.json) fixe archives et exécutables ; [installateur](../tools/browser-tests/install-runtime.mjs). |
+| Test navigateur | Puppeteer Core 25.10.0, package-lock ; installation sans scripts npm. |
+| SpecDD | CLI 1.1.1 ; [guide dédié](../tools/specdd/README.md). |
+| Ollama | Version locale vérifiée 0.33.3 ; binaire natif macOS, indépendant du build Rust. |
+| Modèles | qwen3:4b et embeddinggemma téléchargés par Ollama, jamais dans Git. |
+| Qdrant | Image v1.19.1-unprivileged épinglée par digest, volume nommé dédié. |
 
-Le modèle Ollama n'est pas intégré au dépôt Git : son nom, son identifiant de
-contenu et sa licence sont référencés dans le manifeste de release.
+## Installer le projet après clonage
 
-## Promotion et environnements
+Prérequis : Git, outils Apple, curl, tar/unzip, jq et un Node de bootstrap ≥ 22.
+Le Node de bootstrap sert uniquement à installer les archives verrouillées ;
+les tests utilisent ensuite le Node dédié vérifié par empreinte.
 
-| Niveau | Objectif | Données autorisées | Déploiement actuel |
-| --- | --- | --- | --- |
-| Développement | écrire et exécuter les tests | faux uniquement | local, manuel |
-| CI | vérifier automatiquement chaque push `main` et pull request | faux uniquement | GitHub Actions actif |
-| Qualification locale | vérifier le vrai Ollama et le vrai modèle | prompts non sensibles uniquement | local, manuel |
-| Release locale | état validé et documenté | faux, puis données explicitement autorisées | à créer |
+~~~sh
+sh tools/rust/install.sh
+node tools/browser-tests/install-runtime.mjs
+export PATH="$PWD/.local/browser-runtime/node-v22.23.2-darwin-arm64/bin:$PATH"
+npm --prefix tools/specdd ci --omit=dev --ignore-scripts --no-fund --no-audit
+npm --prefix tools/browser-tests ci --ignore-scripts --no-fund --no-audit
+sh tools/rust/run.sh cargo fetch --locked
+sh tools/rust/run.sh cargo fetch --manifest-path tools/wasm-build/Cargo.toml --locked
+node tools/rust/audit-workspace.mjs
+sh tools/browser-tests/run.sh audit
+npm --prefix tools/specdd run audit
+~~~
 
-Un futur environnement de démonstration ou de production ne sera pas déduit de
-ce tableau : il nécessitera une architecture, une authentification, une gestion
-des secrets et une décision d'exposition propres.
+Le PATH ci-dessus ne concerne que le terminal courant. Les installations sont
+dans .local et les node_modules des outils. Aucun composant applicatif n’est
+installé globalement. Les commandes fetch et audit ont besoin du réseau ;
+les builds et tests déterministes suivants utilisent --locked --offline.
 
-## Retour arrière
+Avant compilation Dioxus, preflight.sh vérifie les JS préconstruits avec cinq
+tests du mécanisme de cache amont. Ce contrôle n’est pas une signature de sécurité.
+Les checksums Cargo et les audits de dépendances restent nécessaires.
 
-Le pipeline doit préparer le retour arrière avant une release :
+## Installer / démarrer Ollama sans modifier le lab existant
 
-- code/politique : revenir au tag Git précédent et redémarrer l'API locale ;
-- dépendance : restaurer la version verrouillée précédente ;
-- image future : redéployer le digest précédemment validé ;
-- modèle : conserver l'identifiant de contenu précédent et ne supprimer aucun
-  blob sans décision explicite ;
-- MCP futur : désactiver le connecteur et révoquer son credential dédié.
+Ollama est déjà installé sur la machine de développement : ne pas réinstaller
+ni démarrer une seconde instance sur 11434. Pour une machine neuve, prendre
+l’archive native de la [release officielle 0.33.3](https://github.com/ollama/ollama/releases/tag/v0.33.3).
+Archive CLI macOS : ollama-darwin.tgz ; SHA-256 publié :
+342db03df80bb9db84ff64246031bd5f70c09b59ff52fa5cc9aaae3476cc4a9d.
+Télécharger dans un dossier temporaire dédié, comparer cette empreinte avant
+extraction, puis conserver l’exécutable et ses bibliothèques ensemble.
+L’application macOS alternative est Ollama-darwin.zip, SHA-256 :
+335f1a11299f5f60dc2d5f2651cf12af9d3c303812c68e978be3e45ea7d6eaf4.
 
-Un rollback restaure un état logiciel ; il ne supprime pas silencieusement les
-données ou modèles créés pendant la release.
+Démarrage CLI d’une instance arrêtée, avec le binaire installé accessible :
 
-## Plan d'implémentation CI/CD
+~~~sh
+OLLAMA_HOST=127.0.0.1:11434 OLLAMA_NO_CLOUD=1 ollama serve
+~~~
 
-1. **Fait :** tests Python déterministes pour RBAC/ACL, SSO, documents,
-   lecteur, récupération, RAG, clients sémantiques et indexeur contrôlé.
-2. **Fait :** faux Ollama déterministe pour les contrats chat et RAG.
-3. **Fait :** workflow GitHub Actions de tests, sans déploiement automatique.
-4. **Fait et validé par la CI GitHub Actions du commit `d40d318` :** Qdrant
-   éphémère et test writer + filtre ACL réel, sans document du dépôt.
-5. Ajouter scans de dépendances, d'images, SBOM et politique de traitement des CVE dès
-   qu'une dépendance, une image ou un MCP est introduit.
-6. Créer un manifeste et des notes de release, puis seulement un tag
-   `lab-v0.1.0` lorsque le RBAC est réellement appliqué et testé.
+Ces variables imposent loopback et désactivation du cloud. L’application macOS
+utilise ses réglages propres ; le modèle de configuration
+[server.json.example](../config/ollama/server.json.example) désactive aussi le cloud.
+Vérifier la configuration effective après redémarrage, selon la
+[documentation officielle](https://docs.ollama.com/faq).
+Ne pas écraser une configuration personnelle existante.
+
+Dans un autre terminal, téléchargement explicite des modèles sur machine neuve :
+
+~~~sh
+ollama pull qwen3:4b
+ollama pull embeddinggemma
+ollama list
+curl -fsS http://127.0.0.1:11434/api/version
+~~~
+
+Un tag de modèle peut évoluer : enregistrer le digest effectif et les licences
+lors d’une mise à jour. Le tag seul n’offre pas la reproductibilité d’un
+Cargo.lock. La migration Rust ne retélécharge ni ne réentraîne ces modèles.
+
+## Installer / démarrer Qdrant sur une machine neuve
+
+Docker Desktop doit fonctionner. L’instance du lab utilise l’utilisateur
+1000:1000, 1 Gio de RAM, un volume nommé llm-lab-qdrant-data, et le seul port
+hôte 127.0.0.1:6333. Aucun montage du répertoire personnel ni socket Docker.
+
+~~~sh
+docker volume create llm-lab-qdrant-data
+docker run -d --name llm-lab-qdrant --memory=1g --user 1000:1000 -p 127.0.0.1:6333:6333 -v llm-lab-qdrant-data:/qdrant/storage qdrant/qdrant:v1.19.1-unprivileged@sha256:801777072776dc81b2a9dd2007b2ed487571f21ecd30efffd15ddb1671f2193d
+curl -fsS http://127.0.0.1:6333/readyz
+~~~
+
+Ces commandes de création ne sont pas à rejouer sur un conteneur existant :
+docker start llm-lab-qdrant suffit s’il est arrêté. Le volume ne doit pas être
+supprimé lors d’une livraison de l’API. L’indexation reste une commande
+administrative explicite, décrite dans [recherche et indexation](semantic-rag-design.md).
+
+## Construire, vérifier et lancer Rust
+
+~~~sh
+sh tools/check.sh
+sh tools/qdrant-test.sh
+sh tools/rust/build-app.sh
+~~~
+
+check.sh regroupe formatage, Clippy natif/WASM sans avertissement, tests métier
+et API, SpecDD, hygiène/liens, tests du transformateur et navigateur réel.
+qdrant-test.sh crée un conteneur séparé, sans volume du lab, avec 256 Mio,
+un port aléatoire loopback, puis le supprime même en cas d’erreur.
+Aucun test de ce contrôle ne doit viser le port 6333 du lab.
+
+build-app.sh produit les binaires et affiche CHATPURP_WEB_ASSETS=<dossier>.
+Démarrer avec ce dossier exact, après vérification qu'aucune instance n'écoute déjà :
+
+~~~sh
+.local/rust/target/aarch64-apple-darwin/debug/chatpurp-api "$PWD" "<dossier CHATPURP_WEB_ASSETS affiché>"
+~~~
+
+L’adresse est http://127.0.0.1:3211. Une configuration invalide empêche l’écoute.
+Pas de service permanent installé ; arrêter le processus dédié avec Ctrl-C
+depuis son terminal. Ne pas utiliser de kill global sur Python, Rust ou Ollama.
+
+## CI et CD
+
+[Workflow](../.github/workflows/tests.yml) exécuté sur push/PR vers main,
+permissions GitHub en lecture minimale :
+
+- Contrats SpecDD : installation verrouillée, audit, lint, tests.
+- Rust sur macOS 26 ARM64 : installations vérifiées, audit des dépendances,
+  build natif/WASM, tests HTTP/filesystem puis vrais parcours Chromium.
+- Contrat Qdrant sur Ubuntu : binaire Rust contre un Qdrant éphémère sur 6334,
+  sans modèle ni donnée du lab.
+- Détection de secrets : Gitleaks.
+
+Le choix du runner ARM64 est confirmé par la
+[référence GitHub](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
+Il ne remplace pas l’exécution effective du workflow.
+Les tests n’appellent pas un LLM distant ni l’Ollama personnel. Le faux modèle
+rend le parcours CI déterministe ; il ne mesure pas la qualité de génération.
+
+CD actuelle : livraison locale contrôlée, pas de déploiement automatique
+Internet ni de publication de crates. Une release doit identifier commit,
+Cargo.lock, toolchain, assets du même build, modèles effectifs et résultats CI.
+Une installation réussie ne constitue pas un audit exhaustif des fournisseurs.
+
+## Bascule, nettoyage et retour arrière
+
+La bascule approuvée remplace Python par Rust sur 3211. Le code Python et son
+job CI sont retirés ; aucun service applicatif n'est attendu sur 3210.
+Le cookie Rust et l'audit restent distincts des anciens : un port différent
+ne suffit pas à isoler les cookies.
+
+Après chaque démarrage, contrôle automatisé d'intégration locale explicite :
+
+~~~sh
+.local/browser-runtime/node-v22.23.2-darwin-arm64/bin/node tools/live-smoke.mjs
+~~~
+
+Ce contrôle utilise Oscar et deux prompts fictifs fixes, vérifie santé,
+session, autorisation/refus, récupération, réponses du vrai Ollama et déconnexion.
+Il ne stocke aucun jeton ni réponse, ne modifie pas Qdrant, et n'est pas lancé
+par la CI : sa disponibilité dépend des services et ses réponses ne sont pas
+déterministes. Il ne remplace pas la suite de contrats à fournisseurs fictifs.
+
+Publier le dépôt sans archives ni documents obsolètes après les vérifications.
+Ne pas effacer modèles, volume Qdrant ou données locales pour « nettoyer Git ».
+
+Un retour arrière utilise un commit publié antérieur dans un dossier distinct
+et ses commandes de lancement ; ne pas réinitialiser brutalement le worktree.
+Pour une future mise à jour Rust, conserver le binaire ET ses assets cohérents.
+Tout redémarrage ferme les sessions. Le remplacement de l’index sémantique
+n’est pas transactionnel et nécessite une procédure indépendante.
+
+## Rapport destiné à OneNote
+
+~~~sh
+.local/browser-runtime/node-v22.23.2-darwin-arm64/bin/node tools/export-onenote.mjs
+~~~
+
+Cette commande génère .local/reports/chatpurp/rapport.html et deux schémas PNG,
+à partir des guides courants, sans accès réseau du navigateur ni connexion à
+OneNote. Le HTML est autonome ; les PNG peuvent être insérés séparément.
+Le transfert et sa vérification dans le OneNote de l’utilisateur restent à
+faire après ouverture de l’accès et choix de la destination.

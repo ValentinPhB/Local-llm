@@ -1,0 +1,35 @@
+{
+  "puppeteerVersion": "25.10.0",
+  "sourceCommit": "88b517ab3beb4a237b541cd18ada98ba43de71a7",
+  "components": [
+    {
+      "name": "mitt",
+      "version": "3.0.1",
+      "file": "lib/third_party/mitt/mitt.js",
+      "sha256": "7dd3ebccafb038ea490dbfdb9d960981d20bf75bc0023e8c821cdff2454f93f5"
+    },
+    {
+      "name": "parsel-js",
+      "version": "1.2.3",
+      "file": "lib/third_party/parsel-js/parsel-js.js",
+      "sha256": "303b2dca12eea8c6a6d9097dbe8c852d18e28e33973d73fd4cdcd40e5d15a5db"
+    },
+    {
+      "name": "rxjs",
+      "version": "7.8.2",
+      "file": "lib/third_party/rxjs/rxjs.js",
+      "sha256": "4785a769fa88a35a0e5ac76f575af05ede256999dc0e17e8fe1921c7876d67ca"
+    },
+    {
+      "name": "urlpattern-polyfill",
+      "version": "10.1.0",
+      "file": "lib/third_party/urlpattern-polyfill/urlpattern-polyfill.js",
+      "sha256": "15abce190f9ad27b0135d918c6dbae4edde14a5160620bd682a4ff1b9b7cc4e1"
+    },
+    {
+      "name": "tslib",
+      "version": "2.8.1",
+      "includedIn": "rxjs"
+    }
+  ]
+}

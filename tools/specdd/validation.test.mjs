@@ -14,7 +14,7 @@ const subject = 'specs/001-demo-session-document-read';
 const filename = `${subject}/001-demo-session-document-read.sdd`;
 const expectedIds = [
   'SES-01', 'SES-02', 'SES-03', 'ACL-01', 'ACL-02', 'ACL-03',
-  'DOC-01', 'DOC-02', 'DOC-03', 'AUD-01', 'AUD-02', 'UI-01', 'ISO-01',
+  'DOC-01', 'DOC-02', 'DOC-03', 'AUD-01', 'AUD-02', 'UI-01', 'ISO-01', 'HTTP-01',
 ];
 
 function run(...args) {
@@ -26,11 +26,12 @@ function run(...args) {
   return result;
 }
 
-function resolvedContract() {
-  const result = run('resolve', '--root', root, subject, '--sections', 'all', '--format', 'json');
+function resolvedContract(directory = subject) {
+  const result = run('resolve', '--root', root, directory, '--sections', 'all', '--format', 'json');
   assert.equal(result.status, 0, result.stdout + result.stderr);
   const specs = JSON.parse(result.stdout).directories.flatMap(directory => directory.specs);
-  const matching = specs.filter(spec => spec.path === filename);
+  const name = directory === subject ? filename : `${directory}/${directory.split('/').at(-1)}.sdd`;
+  const matching = specs.filter(spec => spec.path === name);
   assert.equal(matching.length, 1, 'The pilot must be discovered exactly once');
   assert.equal(matching[0].directoryLevel, true, 'The spec must govern its directory');
   return matching[0];
@@ -40,12 +41,12 @@ function entries(spec, section) {
   return (spec.sections[section] ?? []).flatMap(block => block.body);
 }
 
-function assertRequirementPairs(spec) {
+function assertRequirementPairs(spec, required = expectedIds) {
   for (const section of ['Must', 'Done when']) {
     const ids = entries(spec, section)
-      .map(line => line.match(/^((?:SES|ACL|DOC|AUD|UI|ISO)-\d{2}):\s+\S/))
+      .map(line => line.match(/^([A-Z]+-\d{2}):\s+\S/))
       .filter(Boolean).map(match => match[1]);
-    assert.deepEqual(ids.sort(), [...expectedIds].sort(), `${section}: missing or duplicate requirement`);
+    assert.deepEqual(ids.sort(), [...required].sort(), `${section}: missing or duplicate requirement`);
   }
 }
 
@@ -62,8 +63,11 @@ test('the pinned official CLI validates all pilot specs', () => {
   assert.equal(result.status, 0, result.stdout + result.stderr);
 });
 
-test('resolution discovers SPEC-001 and its 13 requirement/proof pairs', () => {
+test('resolution discovers SPEC-001 and its 14 requirement/proof pairs', () => {
   assertRequirementPairs(resolvedContract());
+});
+test('resolution discovers SPEC-002 and its seven requirement/proof pairs', () => {
+  assertRequirementPairs(resolvedContract('specs/002-chat-and-retrieval'), ['CHAT-01','CHAT-02','RET-01','RAG-01','NET-01','SEM-01','UI-02']);
 });
 
 test('explicit pilot references exist and stay inside the repository', () => {
@@ -101,6 +105,13 @@ test('the traceability check rejects a missing proof and a duplicate requirement
   const duplicate = structuredClone(spec);
   duplicate.sections.Must[0].body.push(entries(spec, 'Must')[0]);
   assert.throws(() => assertRequirementPairs(duplicate), /missing or duplicate/);
+  const missingHttp = structuredClone(spec);
+  missingHttp.sections['Done when'][0].body = entries(spec, 'Done when')
+    .filter(line => !line.startsWith('HTTP-01:'));
+  assert.throws(() => assertRequirementPairs(missingHttp), /missing or duplicate/);
+  const unexpected = structuredClone(spec);
+  unexpected.sections.Must[0].body.push('NEW-01: unexpected requirement');
+  assert.throws(() => assertRequirementPairs(unexpected), /missing or duplicate/);
 });
 
 const auditFixture = {

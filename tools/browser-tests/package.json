@@ -1,0 +1,12 @@
+{
+  "name": "chatpurp-browser-tests",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Qualification navigateur isolée, hors application Rust",
+  "scripts": {
+    "test:policy": "node --test --test-concurrency=1 launch-policy.test.mjs audit.test.mjs",
+    "test:browser": "node --test --test-concurrency=1 --test-timeout=45000 scenarios/runtime.test.mjs",
+    "audit:locked": "node audit.mjs"
+  },
+  "devDependencies": { "puppeteer-core": "25.10.0" }
+}

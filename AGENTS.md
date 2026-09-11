@@ -20,14 +20,25 @@ progressive, expliquée et vérifiable.
   avec lui, étape par étape. Avant une étape, expliquer en termes accessibles
   ce qu'elle apporte, les notions nouvelles, les fichiers concernés et la
   preuve attendue. Après l'étape, expliquer le résultat et ses limites avec
-  un exemple du projet, puis lui laisser la main avant une nouvelle étape
-  pédagogique. Ne pas enchaîner plusieurs briques dans un travail opaque.
+  un exemple du projet. Depuis la demande du 2026-09-11 d'exécution continue,
+  enchaîner les étapes du périmètre convenu sans attendre un « ok » à chaque
+  brique ; maintenir des points d'avancement et un rapport pédagogique final.
+  Ne pas confondre autonomie technique et autorisation d'étendre le périmètre.
+  Réserver les arbitrages métier, nouvelles connexions/droits et bascules actives
+  à une décision explicite. Ne pas présenter des étapes incomplètes comme finies.
   Les vérifications et corrections nécessaires à l'étape déjà autorisée
   restent dans son périmètre ; ne pas redemander les accords déjà donnés.
 - Au début d'une reprise, lire `STATUS.md`, puis `AGENTS.md`, vérifier l'état Git et les services locaux avant toute modification. `STATUS.md` est local et ignoré par Git ; après un clonage, le créer depuis `STATUS.example.md`.
 - Si le message de l'utilisateur est exactement `hey` (sans autre demande), l'interpréter comme le prompt suivant : « Lis `STATUS.md` et `AGENTS.md`. Vérifie Git et Ollama, puis reprends la prochaine étape approuvée du LLM Security Lab. »
 - Expliquer l'objectif, l'impact, les risques et la vérification avant chaque changement significatif.
 - Limiter chaque étape à un changement cohérent et vérifier son résultat.
+- Préparer la restitution OneNote localement : architecture, stacks, versions,
+  configurations, installation, tests et limites. Transférer seulement après
+  disponibilité de l'accès et identification de la destination ; aucun secret.
+- À la livraison, retirer les sondes abandonnées et fusionner les documents
+  remplacés ; aucun dossier d'archives ni guide obsolète dans GitHub. Conserver
+  les raisons des choix retenus dans les ADR, pas un historique de tentatives.
+  Ne pas recréer le README racine sans demande ; docs/README.md reste l'index.
 - Suivre la [méthode SDD](specs/README.md) : comportement spécifié avant code,
   plan puis tâches reliées aux exigences, preuves automatisées et documentation.
   Faire avec l'utilisateur : expliquer les choix et lui réserver les arbitrages
@@ -40,7 +51,8 @@ progressive, expliquée et vérifiable.
 - Appliquer [ADR-0001](docs/decisions/0001-rust-sdd-and-deployment-boundaries.md) :
   dépôt unique, migration progressive Rust, domaines explicites, API modulaire
   et indexeur administratif séparé à terme. Distinguer cible et état exécuté.
-  La priorité actuelle est SPEC-001, avant le raccordement du RAG sémantique.
+  SPEC-001 et SPEC-002 couvrent la migration Rust approuvée ; le raccordement
+  sémantique et les MCP ne sont pas activés par cette migration.
 - Mettre à jour `docs/api-request-flow.md` et
   `docs/local-api-architecture.md` lors de toute évolution du flux API,
   des composants de sécurité, du RAG, d’un outil ou d’un MCP.
