@@ -15,5 +15,8 @@ secrets/
 tmp/
 .DS_Store
 
+# Development-only SpecDD validator dependencies.
+tools/specdd/node_modules/
+
 # Personal handoff notes for the local lab; never publish project progress.
 STATUS.md

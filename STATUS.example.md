@@ -15,3 +15,6 @@ et état Git.
 ## Prochaine étape
 
 À renseigner localement : une seule étape approuvée et vérifiable.
+Consulter aussi la [méthode et les specs](specs/README.md) et
+[ADR-0001](docs/decisions/0001-rust-sdd-and-deployment-boundaries.md) : la
+direction Rust/SDD est versionnée, mais son avancement local doit être vérifié.

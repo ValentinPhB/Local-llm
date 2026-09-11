@@ -10,6 +10,24 @@ interface minimale fournie par ce dépôt
 et d'une récupération RAG lexicale de documents déjà soumis à des contrôles
 d'accès. Une évolution sémantique locale est conçue progressivement.
 
+## Direction retenue et méthode
+
+La prochaine évolution est une migration progressive du code applicatif vers
+Rust, guidée par les [spécifications SDD](specs/README.md). Le dépôt reste
+unique ; l'API sera modulaire, avec une interface Rust/WASM et un indexeur
+administratif séparé à terme. Les raisons sont dans
+[ADR-0001](docs/decisions/0001-rust-sdd-and-deployment-boundaries.md).
+
+La [première spec](specs/001-demo-session-document-read/001-demo-session-document-read.sdd) décrit une
+session fictive et une lecture documentaire autorisée. Elle est proposée pour
+revue ; aucun code Rust n'est encore implémenté. Les descriptions ci-dessous
+concernent l'application Python actuelle. Le raccordement sémantique est différé
+pendant cette première tranche.
+
+Le contrat utilise le format `.sdd` de SpecDD. Sa syntaxe et la correspondance
+des 13 exigences avec leurs preuves attendues sont contrôlées par
+[l'outillage verrouillé](tools/specdd/README.md), également configuré en CI.
+
 ## Principes de sécurité
 
 - Les services restent liés à `localhost` tant qu'une exposition explicite n'est pas décidée.

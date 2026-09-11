@@ -16,7 +16,9 @@ class RepositoryHygieneTests(unittest.TestCase):
 
     def test_internal_markdown_links_target_existing_files(self):
         markdown_files = [ROOT / "README.md", ROOT / "STATUS.example.md", ROOT / "AGENTS.md"]
-        markdown_files.extend((ROOT / "docs").glob("*.md"))
+        markdown_files.append(ROOT / "tools" / "specdd" / "README.md")
+        for directory in ("docs", "specs"):
+            markdown_files.extend((ROOT / directory).rglob("*.md"))
         for source in markdown_files:
             content = source.read_text(encoding="utf-8")
             for target in MARKDOWN_LINK.findall(content):

@@ -1,5 +1,10 @@
 # Architecture du système
 
+Cette page décrit l'application Python existante. La cible Rust acceptée,
+encore non implémentée, est définie dans
+[ADR-0001](decisions/0001-rust-sdd-and-deployment-boundaries.md).
+La migration commence par [SPEC-001](../specs/001-demo-session-document-read/001-demo-session-document-read.sdd).
+
 ## Vue d'ensemble
 
 ```text

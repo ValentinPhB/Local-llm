@@ -10,6 +10,27 @@ permissions:
   contents: read
 
 jobs:
+  specs:
+    name: SpecDD contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: tools/specdd/.node-version
+      - name: Install pinned development validator
+        working-directory: tools/specdd
+        run: npm ci --omit=dev --ignore-scripts --no-fund --no-audit
+      - name: Audit validator runtime dependencies
+        working-directory: tools/specdd
+        run: npm run audit
+      - name: Validate SpecDD syntax
+        working-directory: tools/specdd
+        run: npm run lint
+      - name: Verify discovery, references and requirement traceability
+        working-directory: tools/specdd
+        run: npm test
+
   test:
     runs-on: ubuntu-latest
     services:

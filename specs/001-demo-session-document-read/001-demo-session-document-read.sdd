@@ -1,0 +1,135 @@
+Spec: SPEC-001 — Session de démonstration et lecture documentaire autorisée
+# Statut : proposée pour revue pédagogique ; conversion SpecDD le 2026-09-11.
+# Direction Rust/SDD acceptée ; implémentation et preuves Rust non commencées.
+# Syntaxe : langage SpecDD 1.2, référence framework 1.5.
+
+Purpose:
+  En tant qu'utilisateur du lab, je peux choisir une identité fictive, obtenir une session et consulter un document seulement si la politique l'autorise. Je peux observer les refus sans exposer un contenu interdit. Cette tranche est le premier parcours complet de migration vers Rust.
+
+Owns:
+  Le contrat fonctionnel du parcours session fictive et lecture documentaire de SPEC-001.
+  Les futurs fichiers d'implémentation seront attribués dans le plan ; aucun chemin de code n'est attribué par cette entrée conceptuelle.
+
+Can read:
+  ../../config/demo-idp/directory.json
+  ../../config/access-control/demo-policy.json
+
+References:
+  ../README.md
+  ../../AGENTS.md
+  ../../docs/decisions/0001-rust-sdd-and-deployment-boundaries.md
+  ../../docs/demo-document-catalog.md
+  ../../docs/demo-sso-authentication.md
+  ../../docs/controlled-document-access.md
+
+Must:
+  SES-01: Choix libre d'une identité déclarée ; identité inconnue refusée sans création de session
+  SES-02: Session signée, durée 15 minutes, clé aléatoire en mémoire ; signature, algorithme HS256, issuer, audience, expiration et cohérence identité/groupes vérifiés
+  SES-03: Cookie HttpOnly, SameSite=Strict, Path=/ ; no-store ; déconnexion supprime le cookie ; redémarrage change la clé
+  ACL-01: Session vérifiée et traduction groupes/rôles côté serveur avant décision ; aucune identité ou permission client ne crée un droit
+  ACL-02: Oscar ne peut lire que `public-welcome` ; toutes les identités conservent la matrice de la politique
+  ACL-03: Refus par défaut ; ressource inconnue et ressource interdite indiscernables dans le statut et le corps de réponse
+  DOC-01: Seul un identifiant documentaire valide est accepté, jamais un chemin client
+  DOC-02: Chemin issu de la politique, confiné aux documents de démonstration ; fichier régulier, au plus 32 KiB ; métadonnées cohérentes
+  DOC-03: Lecture autorisée retourne identifiant, classification et contenu ; erreur interne sans chemin système ni contenu partiel
+  AUD-01: Tentative d'audit de chaque décision de lecture ; pour une autorisation, écriture réussie avant lecture
+  AUD-02: Audit minimal borné et privé ; aucun cookie, jeton ou contenu documentaire
+  UI-01: Interface clairement fictive, affichage texte et erreurs compréhensibles ; serveur toujours souverain
+  ISO-01: Écoute locale seulement ; aucune connexion Ollama, Qdrant ou MCP dans ce parcours
+  Périmètre inclus : choix de l'une des quatre identités fictives, création et consultation de session, déconnexion du navigateur, lecture directe d'un document, décisions ACL et audit de cette lecture.
+  La politique et l'annuaire référencés constituent les données fictives de référence.
+  Le rôle MCP futur d'Oscar n'accorde aucun droit documentaire supplémentaire.
+  PUBLIC n'est pas synonyme d'accès anonyme ni d'accès accordé à toutes les identités.
+  La déconnexion retire le cookie du navigateur ; elle ne révoque pas un jeton déjà copié. Celui-ci expire ou devient invalide au changement de clé.
+  Sur le HTTP loopback actuel, le cookie n'a pas Secure ; toute exposition réseau impose une autre décision et un contrat HTTPS.
+  Le journal conserve seulement timestamp, event, route normalisée, outcome, identity_id vérifié ou nul, resource_id valide ou nul.
+  La destination d'audit reste locale et ignorée par Git ; fichier de 1 MiB au plus et une sauvegarde, permissions privées.
+  L'événement d'audit décrit la décision, pas le succès de lecture.
+  Les autres fonctionnalités Python restent disponibles dans leur version actuelle pendant la migration.
+  Le plan du lecteur traite le risque de changement de chemin/lien entre vérification et ouverture et précise la protection retenue.
+    Une simple résolution de chemin ne suffit pas à affirmer une protection contre cette course.
+
+Must not:
+  Étendre cette tranche à un annuaire réel, mots de passe, MFA, recherche, RAG, embeddings, indexation, MCP, modification de documents ou déploiement réseau.
+  Fournir au navigateur la clé de signature ou l'autorité d'accorder un droit.
+
+Exposes:
+  POST /api/demo-session
+  GET /api/session
+  POST /api/logout
+  GET /api/documents/<id>
+  Une interface minimale pour choisir l'identité, demander un identifiant documentaire et afficher contenu ou erreur.
+
+Returns:
+  Lecture réussie : HTTP 200 avec identifiant, classification et contenu.
+
+Raises:
+  Ordre de priorité pour la lecture : session absente/invalide 401 ; identifiant mal formé 400 ; ressource inconnue/interdite 403 ; audit indisponible après autorisation 503 ; fichier indisponible/incohérent 500.
+  Une réponse d'erreur n'expose ni contenu ni chemin système.
+  Si une demande est déjà refusée, une panne d'audit conserve le refus initial.
+
+Handles:
+  Les entrées navigateur et le contenu documentaire sont non fiables.
+  Usurpation de groupes, falsification de session, accès direct à l'API, traversée de chemin, injection HTML et panne d'audit.
+  Aucun engagement d'égalité du temps de réponse entre inconnu et interdit n'est pris ici.
+  Un autre processus hostile exécuté avec les mêmes droits système peut dépasser les garanties de cette API locale.
+
+Tasks:
+  [?] Relire le contrat avec l'utilisateur avant son plan technique.
+  [ ] Détailler les schémas HTTP complets à partir du contrat existant.
+  [ ] Établir le plan de migration et les tâches d'implémentation reliées aux exigences.
+    La migration complète du chat et du RAG fera l'objet d'autres specs.
+
+Done when:
+  SES-01: Création pour les quatre identités, refus d'un identifiant inconnu et d'un corps invalide
+  SES-02: Horloge et clé de test contrôlées ; jetons expirés, altérés, autre algorithme/audience/issuer ou groupes modifiés refusés
+  SES-03: Contrat HTTP des attributs, test navigateur de déconnexion et ancien jeton refusé avec la nouvelle clé
+  ACL-01: Tentatives d'usurpation par paramètres, en-têtes et jeton altéré ; refus avant tout appel au lecteur
+  ACL-02: Matrice des quatre identités sur les quinze documents ; contrôle des refus avant lecture
+  ACL-03: Comparaison des deux réponses et zéro appel au lecteur ; politique invalide refusée au chargement
+  DOC-01: Identifiants de 1 à 80 caractères `[a-z0-9-]`, traversées simples/encodées, séparateurs et longueur excessive
+  DOC-02: Fichiers temporaires : sortie de racine, lien sortant, fichier spécial, taille excessive et métadonnées incohérentes refusés sans contenu exposé
+  DOC-03: Schéma JSON, contenu attendu, fichier absent et métadonnées invalides ; en-tête no-store
+  AUD-01: Espions enregistrant l'ordre session/ACL/audit/lecture ; panne d'audit => zéro lecture et zéro contenu
+  AUD-02: Liste fermée des champs, valeurs sensibles sentinelles absentes, rotation et permissions des fichiers
+  UI-01: Parcours navigateur automatisé Oscar autorisé/refusé, contenu HTML malveillant inerte, appel direct API refusé
+  ISO-01: Inspection de l'adresse d'écoute et dépendances espionnées ; parcours réussi sans ces services
+  Chaque exigence possède des tests identifiés et des résultats constatés.
+  Les refus prouvent l'absence de lecture, pas seulement un statut HTTP.
+  Les tests sont déterministes, avec fichiers temporaires et horloge injectée ; aucun accès aux journaux de session réels ni au Qdrant local.
+  Le parcours navigateur et les contrats HTTP sont automatisés en CI ; la stratégie couvre le comportement filesystem sur macOS avant bascule.
+  Les fixtures contractuelles peuvent comparer Python et Rust ; tout écart est expliqué par la spec, plutôt que copié aveuglément depuis Python.
+  Le plan définit coexistence (adresses et cookies sans collision), bascule locale et retour arrière avant remplacement du service actif.
+  Documentation effective et résultats de CI sont mis à jour.
+  Une validation syntaxique de ce fichier ne valide ni le workspace Rust, ni ses tests, ni la bascule de service.
+
+Scenario: Lecture autorisée
+  Given une session valide pour Oscar
+  When il demande public-welcome
+  Then la décision est autorisée
+  And l'audit réussit avant l'appel au lecteur
+  And le document est retourné
+
+Scenario: Lecture refusée
+  Given une session valide pour Oscar
+  When il demande public-glossary, rh-onboarding ou it-workstation
+  Then il reçoit un refus
+  And l'audit est tenté
+  And le lecteur n'est jamais appelé
+
+Scenario: Session invalide
+  Given une session absente ou invalide
+  When une lecture documentaire est demandée
+  Then la requête est refusée avant la décision documentaire et la lecture
+  And l'audit ne contient pas les valeurs d'identité revendiquées dans un jeton non vérifié
+
+Scenario: Panne de journal après autorisation
+  Given Oscar autorisé à lire public-welcome
+  When l'écriture d'audit échoue
+  Then la demande échoue avant la lecture
+  And aucun contenu documentaire n'est exposé
+
+Scenario: Panne de journal pour une demande déjà refusée
+  Given une demande de lecture refusée
+  When la tentative d'audit échoue
+  Then le refus initial est conservé

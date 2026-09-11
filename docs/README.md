@@ -3,8 +3,16 @@
 Ce dossier décrit le laboratoire par sujet. Le flux réellement actif reste la
 référence ; les documents « futur » décrivent une étape non activée.
 
+La direction Rust/SDD est acceptée, son implémentation n'a pas commencé.
+Les comportements attendus et leur statut sont dans
+[l'index des spécifications](../specs/README.md) ; les guides ci-dessous
+décrivent l'existant et identifient explicitement les éléments futurs.
+
 | Document | Contenu |
 | --- | --- |
+| [ADR-0001](decisions/0001-rust-sdd-and-deployment-boundaries.md) | Décision Rust/SDD : dépôt unique, frontières métier et cible d'exécution. |
+| [ADR-0002](decisions/0002-specdd-contract-pilot.md) | Pilote `.sdd` : format SpecDD, validation et limites d'adoption. |
+| [Validation SpecDD](../tools/specdd/README.md) | Versions verrouillées, installation et contrôles automatisés des contrats. |
 | [system-architecture.md](system-architecture.md) | Vue d'ensemble des composants et frontières. |
 | [local-api-architecture.md](local-api-architecture.md) | Routes, données et responsabilités de l'API Python. |
 | [api-request-flow.md](api-request-flow.md) | Séquence exacte d'une requête, de l'UI à Ollama. |

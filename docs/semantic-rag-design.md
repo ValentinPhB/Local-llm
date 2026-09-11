@@ -1,5 +1,10 @@
 # RAG sémantique contrôlé — conception approuvée
 
+Le raccordement à l'API est différé pendant la première tranche de migration
+Rust décrite dans [SPEC-001](../specs/001-demo-session-document-read/001-demo-session-document-read.sdd).
+La conception et les composants Python préparés ci-dessous sont conservés ;
+ils ne décrivent pas une implémentation Rust ni une activation nouvelle.
+
 ## État et objectif
 
 Le RAG actuellement actif est lexical : il compte les mots communs entre une

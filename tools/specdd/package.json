@@ -1,0 +1,19 @@
+{
+  "name": "chatpurp-specdd-validation",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Development-only validation of ChatPurp SpecDD contracts",
+  "specddReference": {
+    "frameworkVersion": "1.5",
+    "frameworkCommit": "f5440dc93f4fc75c42f2fbbdfc304bd7ef0e5451",
+    "languageVersion": "1.2",
+    "mode": "syntax-pilot-no-bootstrap"
+  },
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "lint": "specdd lint ../../specs",
+    "audit": "node audit-runtime.mjs",
+    "test": "node --test validation.test.mjs"
+  },
+  "dependencies": { "specdd": "1.1.1" }
+}

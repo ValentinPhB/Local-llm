@@ -4,6 +4,10 @@ Ce document est la référence du trajet d’une requête dans le laboratoire. I
 doit être mis à jour lors de toute modification de session, ACL, lecture,
 récupération, génération, outil ou MCP.
 
+Le flux décrit reste celui de Python. La première tranche Rust est spécifiée
+dans [SPEC-001](../specs/001-demo-session-document-read/001-demo-session-document-read.sdd), mais n'est pas
+implémentée. Ce flux sera actualisé lors de sa mise en service.
+
 ## Principe
 
 Le LLM ne vérifie aucun droit et n’ouvre aucun fichier. L’API locale Python est

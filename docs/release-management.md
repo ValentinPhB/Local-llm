@@ -11,13 +11,38 @@ qualité, la sécurité, la compatibilité et le retour arrière ont été véri
 
 ## État actuel
 
+La direction Rust/SDD est acceptée dans
+[ADR-0001](decisions/0001-rust-sdd-and-deployment-boundaries.md).
+La [méthode SDD](../specs/README.md) relie désormais exigences, tests et
+livraisons. Aucun build ni job Rust/WASM n'existe encore : ils seront définis
+dans le plan de [SPEC-001](../specs/001-demo-session-document-read/001-demo-session-document-read.sdd),
+avec contrats HTTP, parcours navigateur automatisés et qualification macOS.
+La CI Python reste la preuve de l'existant, pas de la future version Rust.
+
+Le workflow inclut maintenant un job `SpecDD contracts` pour le
+[pilote de format](decisions/0002-specdd-contract-pilot.md). Il installe le
+runtime et la CLI fixés dans [tools/specdd](../tools/specdd/README.md), puis
+audite ses dépendances d'exécution, exécute le lint officiel et les huit
+contrôles du contrat. Les dépendances de développement amont sont exclues
+par `--omit=dev`, les scripts d'installation sont désactivés. Le résultat
+distant se vérifie sur l'exécution GitHub Actions du commit concerné ; ses
+commandes ont une vérification locale distincte.
+
+Le contrôle d'audit conserve visibles les alertes sur les paquets dev amont
+exclus de l'installation. Il ne les écarte du seuil bloquant qu'après preuve
+de leur absence et de leur statut dev dans le shrinkwrap amont ; les tests
+couvrent aussi les erreurs de rapport et le refus d'exclure un paquet installé.
+Le détail est dans le guide de l'outillage ; le lockfile complet ne doit pas
+être présenté comme exempt d'alertes.
+
 Une CI GitHub Actions est configurée dans `.github/workflows/tests.yml`. Elle
-exécute la suite Python déterministe et Gitleaks à chaque push sur `main` et
+exécute les contrôles SpecDD, la suite Python déterministe et Gitleaks à chaque push sur `main` et
 pull request. Elle ne déploie rien, ne télécharge aucun modèle et n'appelle pas
 Ollama.
 
-Il n'autorise aucun déploiement réseau ou cloud. Les scans de dépendances,
-d'images et le SBOM sont des extensions prévues, pas des contrôles actifs.
+Il n'autorise aucun déploiement réseau ou cloud. L'audit des dépendances de
+l'outillage SpecDD est configuré ; les autres scans de dépendances, les scans
+d'images et le SBOM restent des extensions prévues.
 
 ## Briques et responsabilités de test
 
@@ -30,13 +55,13 @@ d'images et le SBOM sont des extensions prévues, pas des contrôles actifs.
 | Récupération lexicale et RAG | `document_store/retriever.py`, `ui/server.py` | classement lexical, bornage, contexte serveur | ACL avant lecture, extraits autorisés seulement, faux Ollama | pas d'index vectoriel persistant, pas de contenu dans les journaux |
 | Ollama | application macOS | hors CI : logiciel tiers | API locale, version, écoute `127.0.0.1` | signature/notarisation, veille CVE avant mise à jour |
 | Modèle | manifeste et blobs Ollama | hors CI : artefact tiers | requête non sensible, mémoire et temps de réponse | licence, origine, identifiant de contenu, comportement `think` |
-| RAG sémantique en préparation | `semantic_retrieval/` | clients loopback, filtre Qdrant, chunking, indexeur et writer fixe | faux embeddings et faux Qdrant ; Qdrant réel vide | aucune écriture réelle ni route API avant tests d'intégration |
+| RAG sémantique en préparation | `semantic_retrieval/` | clients loopback, filtre Qdrant, chunking, indexeur et writer fixe | faux embeddings ; Qdrant éphémère réel en CI avec deux passages fictifs | Qdrant local non alimenté ; aucune route sémantique active |
 | MCP futur | passerelle et connecteurs | validation des permissions et paramètres | action autorisée/refusée avec faux service | secrets dédiés, moindre privilège, audit, scan dépendances ; Oscar limité à `read` déclaré |
 
 ## CI actuelle et extensions prévues
 
 Aujourd'hui, chaque push sur `main` et chaque pull request vers `main` déclenche
-deux jobs : la suite Python déterministe et Gitleaks sur l'historique Git. Les
+trois jobs : contrats SpecDD, suite Python déterministe et Gitleaks sur l'historique Git. Les
 tests Python couvrent aussi la validité JSON et les liens Markdown via les tests
 de dépôt. Ils démarrent temporairement l'API sur loopback et simulent Ollama.
 
@@ -44,15 +69,18 @@ Les extensions suivantes ne sont pas encore configurées :
 
 ```text
 1. Sécurité et supply chain additionnelles
-   -> scan des dépendances Python et Node si elles apparaissent
+   -> scan des dépendances applicatives, notamment Rust lors de la migration
    -> scan d'image si un conteneur est ajouté
    -> génération d'un SBOM pour les artefacts empaquetés
 
-2. RAG sémantique
-   -> Qdrant comme service CI éphémère et tests d'intégration automatisés
-   -> deux passages fictifs seulement ; aucune recette manuelle comme condition
-      de validation
+2. Migration Rust
+   -> compilation native et WASM, formatage et analyse statique
+   -> tests des exigences de SPEC-001, contrats HTTP et parcours navigateur
+   -> qualification macOS et preuves de coexistence/retour arrière
 ```
+
+Qdrant est déjà un service CI éphémère : l'intégration writer et filtre ACL
+est active avec deux passages fictifs, sans lecture des documents du dépôt.
 
 Une protection de branche peut ultérieurement imposer ces statuts avant fusion ;
 elle n'est pas décrite par ce dépôt.
@@ -68,14 +96,17 @@ télécharger le modèle réel.
 | Dépôt | récupération exacte du commit à tester | le commit est l'artefact source |
 | Python | version supportée explicitement sélectionnée par le workflow | exécuter analyse et tests de `ui/server.py` |
 | Dépendances Python | aucune aujourd'hui : bibliothèque standard uniquement | éviter une dépendance implicite ; plus tard, installer depuis un fichier verrouillé et contrôlé |
+| Validateur SpecDD | Node fixé par `tools/specdd/.node-version`, puis `npm ci --omit=dev --ignore-scripts` depuis son lockfile | audit des dépendances d'exécution, syntaxe et références des contrats, indépendamment du code applicatif |
 | Interface HTML | aucun build ni package aujourd'hui | `index.html` est livré tel quel avec le code source |
+| Qdrant de test | conteneur de service au digest verrouillé dans le workflow | tester le writer et le filtre ACL sur une instance éphémère |
 | Politique RBAC/ACL | incluse dans le commit ; validée comme JSON | les règles font partie de l'artefact à tester |
 | Ollama de test | faux serveur défini par les tests, pas Ollama réel | réponses déterministes, aucun téléchargement de modèle |
 | Outils de scan | Gitleaks est exécuté par le workflow ; les scans de dépendances, d'images et le SBOM restent à ajouter | secrets aujourd'hui, supply chain ensuite |
 
-Le workflow actuel récupère donc le commit, installe Python 3.11, lance les
-tests puis Gitleaks. Il n'appelle ni le registre d'Ollama ni l'API réelle du
-Mac.
+Le workflow récupère le commit, installe Python 3.11 pour les tests applicatifs
+et Node pour le validateur SpecDD dans un job distinct. Gitleaks analyse les
+secrets dans un autre job. Aucun de ces jobs n'appelle le registre d'Ollama
+ni l'API réelle du Mac.
 
 ## Installation et déploiement local de chaque brique
 

@@ -1,5 +1,10 @@
 # Architecture détaillée de l'API locale
 
+État exécuté : Python. La migration Rust suit
+[SPEC-001](../specs/001-demo-session-document-read/001-demo-session-document-read.sdd), encore proposée ;
+aucune route n'a été remplacée. La cible est décrite dans
+[ADR-0001](decisions/0001-rust-sdd-and-deployment-boundaries.md).
+
 ## Rôle
 
 L’API du laboratoire est le processus `python3 ui/server.py`. Elle écoute sur

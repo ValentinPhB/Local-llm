@@ -3,9 +3,20 @@
 Toutes les données employées sont fictives. Les tests de session, RBAC, de
 cohérence des fichiers, lecture contrôlée, récupération lexicale et chat RAG
 sont automatisés. La recherche sémantique est couverte par des tests unitaires
-avec faux fournisseur d'embeddings et faux writer ; elle n'a pas de route API
-ni de route API. La CI ajoute un conteneur Qdrant éphémère : le test y écrit
+avec faux fournisseur d'embeddings et faux writer ; elle n'a pas de route API.
+La CI ajoute un conteneur Qdrant éphémère : le test y écrit
 deux passages fictifs et vérifie le filtre ACL réel.
+
+La première tranche Rust est définie dans
+[SPEC-001](../specs/001-demo-session-document-read/001-demo-session-document-read.sdd).
+Ses sections `Must` et `Done when` relient exigences et preuves attendues ;
+les tests Rust et navigateur associés restent à implémenter.
+L'[outillage SpecDD](../tools/specdd/README.md) ajoute huit tests de
+syntaxe, découverte, références, traçabilité et traitement de l'audit des
+dépendances, avec cas invalides. Ce sont
+des contrôles du contrat, pas des tests du comportement applicatif.
+Le test d'hygiène existant parcourt aussi les sous-dossiers de
+`docs/` et de `specs/`, ainsi que le guide de l'outillage, pour vérifier les liens locaux.
 
 ## Identités et sources fictives actuelles
 
@@ -18,7 +29,7 @@ deux passages fictifs et vérifie le filtre ACL réel.
 
 | Source | Documents fictifs | Accès prévu |
 | --- | --- | --- |
-| PUBLIC | 9 fichiers sous `demo-documents/public/` | Tous les groupes |
+| PUBLIC | 9 fichiers sous `demo-documents/public/` | Alice, Bob, Charlie ; Oscar limité à `public-welcome` |
 | RH | 3 fichiers sous `demo-documents/rh/` | Groupe RH uniquement |
 | IT | 3 fichiers sous `demo-documents/it/` | Groupe IT uniquement |
 
